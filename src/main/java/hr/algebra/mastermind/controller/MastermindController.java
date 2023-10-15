@@ -41,6 +41,7 @@ public class MastermindController {
                     }
                 });
 
+                codeCircle.setDisable(true);
                 codeCircles.add(codeCircle);
             }
         }

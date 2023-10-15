@@ -17,12 +17,14 @@ public final class CodeGuessRow {
 
         for(var node : hBox.getChildren()){
             if(node instanceof Circle guessCircle){
+                guessCircle.setDisable(true);
                 guessCircles.add(guessCircle);
             }
 
             if(node instanceof FlowPane hintCirclesFlowPane){
                 for(var hintCircle : hintCirclesFlowPane.getChildren()){
                     if(hintCircle instanceof Circle hc){
+                        hc.setDisable(true);
                         hintCircles.add(hc);
                     }
                 }
