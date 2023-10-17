@@ -3,6 +3,7 @@ package hr.algebra.mastermind.model;
 import javafx.geometry.Insets;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ public final class CodeGuessRow {
     private final Background activeBackground = new Background(activeBackgroundFill);
     private final BackgroundFill defaultBackgroundFill = new BackgroundFill(Color.web("#373636"), CornerRadii.EMPTY, Insets.EMPTY);
     private final Background defaultBackground = new Background(defaultBackgroundFill);
+    private final Paint defaultCircleColor = Color.web("#848484");
 
     private final HBox parent;
     private final List<Circle> guessCircles;
@@ -57,6 +59,16 @@ public final class CodeGuessRow {
 
         for(var hintCircle : hintCircles){
             hintCircle.setDisable(!isActive);
+        }
+    }
+
+    public void resetRow(){
+        for(var guessCircle : guessCircles){
+            guessCircle.setFill(defaultCircleColor);
+        }
+
+        for(var hintCircle : hintCircles){
+            hintCircle.setFill(defaultCircleColor);
         }
     }
 }

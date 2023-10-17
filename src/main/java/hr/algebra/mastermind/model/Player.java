@@ -1,22 +1,35 @@
 package hr.algebra.mastermind.model;
 
 import hr.algebra.mastermind.enums.Role;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 
 public final class Player {
-    private final IntegerProperty numberOfPoints = new SimpleIntegerProperty(0);
-    private final Role role;
+    private int numberOfPoints = 0;
+    private Role role;
+    private final Role defaultRole;
 
     public Player(Role role){
         this.role = role;
+        defaultRole = role;
     }
 
-    public void increasePoints(int increaseAmount){
-        numberOfPoints.add(increaseAmount);
+    public void incrementPoints(){
+        numberOfPoints += 1;
     }
 
     public Role getRole() {
         return role;
+    }
+
+    public int getNumberOfPoints() {
+        return numberOfPoints;
+    }
+
+    public void changeRole(){
+        role = role == Role.Codemaker ? Role.Codebreaker : Role.Codemaker;
+    }
+
+    public void reset(){
+        role = defaultRole;
+        numberOfPoints = 0;
     }
 }
