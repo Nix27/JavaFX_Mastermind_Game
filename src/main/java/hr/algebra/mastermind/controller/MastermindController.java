@@ -27,7 +27,7 @@ public class MastermindController {
     public VBox guessRowsVBox;
     public Button btnSetCode;
     public Button btnStartGame;
-    public Button btnNextRow;
+    public Button btnNextTurn;
     public Label lbPlayer1Role;
     public Label lbPlayer1Points;
     public Label lbPlayer2Role;
@@ -38,6 +38,8 @@ public class MastermindController {
     private Paint selectedColor;
     private Paint selectedHintColor;
 
+    private final List<Circle> colorCircles = new ArrayList<>();
+    private final List<Circle> hintColorCircles = new ArrayList<>();
     private final List<Circle> codeCircles = new ArrayList<>();
     private final List<CodeGuessRow> codeGuessRows = new ArrayList<>();
 
@@ -46,13 +48,14 @@ public class MastermindController {
     private int numberOfRounds;
     private Player player1;
     private Player player2;
+    private Role currentTurn;
 
     private final SpinnerValueFactory<Integer> spinnerValueFactory =
             new SpinnerValueFactory.IntegerSpinnerValueFactory(2, 100, 2, 2);
 
     public void initialize(){
-        addEventToGuessColorCircles();
-        addEventToHintColorCircles();
+        initColorCircles();
+        initHintColorCircles();
         initCodeCircles();
         initCodeGuessRows();
         addEventToGuessCircles();
@@ -66,7 +69,7 @@ public class MastermindController {
 
         spNumberOfRounds.setValueFactory(spinnerValueFactory);
         btnSetCode.setVisible(false);
-        btnNextRow.setVisible(false);
+        btnNextTurn.setVisible(false);
     }
 
     private void initCodeCircles() {
@@ -121,19 +124,35 @@ public class MastermindController {
         }
     }
 
-    private void addEventToGuessColorCircles(){
+    private void initColorCircles(){
         for(var node : guessColorsFlowPane.getChildren()){
             if(node instanceof Circle colorCircle){
                 colorCircle.setOnMouseClicked(e -> selectedColor = colorCircle.getFill());
+                colorCircle.setDisable(true);
+                colorCircles.add(colorCircle);
             }
         }
     }
 
-    private void addEventToHintColorCircles(){
+    private void initHintColorCircles(){
         for(var node: hintColorsFlowPane.getChildren()){
             if(node instanceof Circle hintColorCircle){
                 hintColorCircle.setOnMouseClicked(e -> selectedHintColor = hintColorCircle.getFill());
+                hintColorCircle.setDisable(true);
+                hintColorCircles.add(hintColorCircle);
             }
+        }
+    }
+
+    private void enableColorCircles(boolean isEnable){
+        for(var colorCircle : colorCircles){
+            colorCircle.setDisable(!isEnable);
+        }
+    }
+
+    private void enableHintColorCircles(boolean isEnable){
+        for(var hintColorCircle : hintColorCircles){
+            hintColorCircle.setDisable(!isEnable);
         }
     }
 
@@ -169,13 +188,14 @@ public class MastermindController {
         }
 
         enableCodeCircles(false);
-        currentRow.setActive(true);
+        currentRow.setActiveGuessCircles(true);
+        currentTurn = Role.Codebreaker;
 
         btnSetCode.setVisible(false);
-        btnNextRow.setVisible(true);
+        btnNextTurn.setVisible(true);
     }
 
-    public void nextRow(){
+    public void nextTurn(){
         if(numberOfRounds < 1){
             if(player1.getNumberOfPoints() == player2.getNumberOfPoints()){
                 DialogUtils.showGameResult("Draw", "It's draw!");
@@ -186,7 +206,18 @@ public class MastermindController {
             return;
         }
 
-        currentRow.setActive(false);
+        if(currentTurn == Role.Codemaker){
+            nextRow();
+            currentTurn = Role.Codebreaker;
+        }else{
+            currentRow.setActiveGuessCircles(false);
+            currentRow.setActiveHintCircles(true);
+            currentTurn = Role.Codemaker;
+        }
+    }
+
+    private void nextRow(){
+        currentRow.setActiveHintCircles(false);
 
         if(player1.getRole() == Role.Codemaker){
             player1.incrementPoints();
@@ -206,15 +237,15 @@ public class MastermindController {
 
         currentRow = codeGuessRows.get(currentRowIndex + 1);
 
-        currentRow.setActive(true);
+        currentRow.setActiveGuessCircles(true);
     }
 
     private void nextRound(){
         resetGuessRows();
         switchPlayerRoles();
-        currentRow.setActive(false);
+        currentRow.setActiveGuessCircles(false);
         currentRow = codeGuessRows.get(0);
-        currentRow.setActive(true);
+        currentRow.setActiveGuessCircles(true);
     }
 
     private void switchPlayerRoles(){
@@ -244,9 +275,9 @@ public class MastermindController {
         resetCodeCircles();
         enableCodeCircles(false);
         resetGuessRows();
-        currentRow.setActive(false);
+        currentRow.setActiveGuessCircles(false);
         currentRow = codeGuessRows.get(0);
-        btnNextRow.setVisible(false);
+        btnNextTurn.setVisible(false);
         btnSetCode.setVisible(false);
         btnStartGame.setVisible(true);
         spNumberOfRounds.setValueFactory(spinnerValueFactory);

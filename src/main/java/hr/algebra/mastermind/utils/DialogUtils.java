@@ -16,8 +16,8 @@ public final class DialogUtils {
 
     public static void showGameResult(String title, String message){
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Winner");
-        alert.setHeaderText("Winner");
+        alert.setTitle(title);
+        alert.setHeaderText(title);
         alert.setContentText(message);
 
         alert.showAndWait();

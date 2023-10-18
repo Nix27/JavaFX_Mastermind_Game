@@ -50,12 +50,18 @@ public final class CodeGuessRow {
         return hintCircles;
     }
 
-    public void setActive(boolean isActive){
-        parent.setBackground(isActive ? activeBackground : defaultBackground);
+    public void setActiveGuessCircles(boolean isActive){
+        if(isActive)
+            parent.setBackground(activeBackground);
 
         for(var guessCircle : guessCircles){
             guessCircle.setDisable(!isActive);
         }
+    }
+
+    public void setActiveHintCircles(boolean isActive){
+        if(!isActive)
+            parent.setBackground(defaultBackground);
 
         for(var hintCircle : hintCircles){
             hintCircle.setDisable(!isActive);
