@@ -38,6 +38,8 @@ public class MastermindController {
     public Label lbPlayer2Role;
     public Label lbPlayer2Points;
     public Spinner<Integer> spNumberOfRounds;
+    public Circle player1Indicator;
+    public Circle player2Indicator;
 
     private final Paint defaultCircleColor = Color.web("#848484");
     private Paint selectedColor;
@@ -71,6 +73,8 @@ public class MastermindController {
         player2 = new Player(Role.Codebreaker);
 
         showPlayerInfo();
+        player1Indicator.setVisible(false);
+        player2Indicator.setVisible(false);
 
         spNumberOfRounds.setValueFactory(spinnerValueFactory);
         btnSetCode.setVisible(false);
@@ -173,13 +177,14 @@ public class MastermindController {
         btnSetCode.setVisible(true);
         enableColorCircles(true);
         apStartGame.setVisible(false);
+        player1Indicator.setVisible(true);
     }
 
-    private boolean isValidCode(){
+    private boolean isValidCircles(List<Circle> circles){
         boolean isValid = true;
 
-        for(var codeCircle : codeCircles){
-            if(codeCircle.getFill().equals(defaultCircleColor)){
+        for(var circle : circles){
+            if(circle.getFill().equals(defaultCircleColor)){
                 isValid = false;
                 break;
             }
@@ -189,41 +194,76 @@ public class MastermindController {
     }
 
     public void startGuessing(){
-        if(!isValidCode()){
-            DialogUtils.showInvalidCodeWarning();
+        if(!isValidCircles(codeCircles)){
+            DialogUtils.showWarning("Invalid code", "Code is not valid", "All circles of code should be filled with color!");
             return;
         }
 
-        enableCodeCircles(false);
+        //enableCodeCircles(false);
+        setVisibleCodeCircles(false);
         currentRow.setActiveGuessCircles(true);
         currentTurn = Role.Codebreaker;
+        setPlayerIndicator();
 
         btnSetCode.setVisible(false);
         btnNextTurn.setVisible(true);
     }
 
-    public void nextTurn(){
-        if(numberOfRounds < 1){
-            if(player1.getNumberOfPoints() == player2.getNumberOfPoints()){
-                DialogUtils.showGameResult("Draw", "It's draw!");
-            }else{
-                DialogUtils.showGameResult("Winner","Winner is " + (player1.getNumberOfPoints() > player2.getNumberOfPoints() ? "Player 1!" : "Player 2!"));
-            }
+    private void setVisibleCodeCircles(boolean isVisible){
+        codeCircles.forEach(c -> c.setVisible(isVisible));
+    }
 
-            return;
+    private boolean checkForRightCode(){
+        boolean isRightCode = true;
+
+        for(var hintCircle : currentRow.getHintCircles()){
+            if(hintCircle.getFill() != Color.BLACK){
+                isRightCode = false;
+                break;
+            }
         }
 
+        return isRightCode;
+    }
+
+    public void nextTurn(){
+        if(checkIfLastRound()) return;
+
         if(currentTurn == Role.Codemaker){
-            nextRow();
+            if(checkForRightCode()){
+                nextRound();
+                return;
+            }
+
             currentTurn = Role.Codebreaker;
+            nextRow();
             enableColorCircles(true);
             enableHintColorCircles(false);
+
+            setPlayerIndicator();
         }else{
+            if(!isValidCircles(currentRow.getGuessCircles())){
+                DialogUtils.showWarning("Invalid guess", "Guess is not valid", "All circles of guess should be filled with color!");
+                return;
+            }
+
             enableColorCircles(false);
             enableHintColorCircles(true);
             currentRow.setActiveGuessCircles(false);
             currentRow.setActiveHintCircles(true);
             currentTurn = Role.Codemaker;
+
+            setPlayerIndicator();
+        }
+    }
+
+    private void setPlayerIndicator(){
+        if(player1.getRole() == currentTurn){
+            player1Indicator.setVisible(true);
+            player2Indicator.setVisible(false);
+        }else {
+            player1Indicator.setVisible(false);
+            player2Indicator.setVisible(true);
         }
     }
 
@@ -241,7 +281,6 @@ public class MastermindController {
         int currentRowIndex = codeGuessRows.indexOf(currentRow);
 
         if(currentRowIndex + 1 == NUM_OF_GUESS_ROWS){
-            numberOfRounds--;
             nextRound();
             return;
         }
@@ -251,12 +290,36 @@ public class MastermindController {
         currentRow.setActiveGuessCircles(true);
     }
 
+    private boolean checkIfLastRound(){
+        if(numberOfRounds < 1){
+            if(player1.getNumberOfPoints() == player2.getNumberOfPoints()){
+                DialogUtils.showGameResult("Draw", "It's draw!");
+            }else{
+                DialogUtils.showGameResult("Winner","Winner is " + (player1.getNumberOfPoints() > player2.getNumberOfPoints() ? "Player 1!" : "Player 2!"));
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     private void nextRound(){
+        numberOfRounds--;
+        if(checkIfLastRound()) return;
+
         resetGuessRows();
         switchPlayerRoles();
         currentRow.setActiveGuessCircles(false);
+        currentRow.setActiveHintCircles(false);
+        enableCodeCircles(true);
+        btnSetCode.setVisible(true);
+        enableColorCircles(true);
         currentRow = codeGuessRows.get(0);
-        currentRow.setActiveGuessCircles(true);
+        resetCodeCircles();
+        btnNextTurn.setVisible(false);
+        currentTurn = Role.Codemaker;
+        setPlayerIndicator();
     }
 
     private void switchPlayerRoles(){
@@ -276,6 +339,7 @@ public class MastermindController {
     private void resetCodeCircles(){
         for(var codeCircle : codeCircles){
             codeCircle.setFill(defaultCircleColor);
+            codeCircle.setVisible(true);
         }
     }
 
@@ -283,6 +347,8 @@ public class MastermindController {
         player1.reset();
         player2.reset();
         showPlayerInfo();
+        player1Indicator.setVisible(false);
+        player2Indicator.setVisible(false);
         resetCodeCircles();
         enableCodeCircles(false);
         resetGuessRows();
@@ -351,9 +417,11 @@ public class MastermindController {
             currentRow = codeGuessRows.get(loadedGameState.getIndexOfCurrentRow());
             numberOfRounds = loadedGameState.getNumberOfRounds();
             currentTurn = loadedGameState.getCurrentTurn();
+
             apStartGame.setVisible(loadedGameState.getIsStartGameVisible());
             player1 = loadedGameState.getPlayer1();
             player2 = loadedGameState.getPlayer2();
+            setPlayerIndicator();
 
             showPlayerInfo();
             btnSetCode.setVisible(loadedGameState.getIsBtnSetCodeVisible());

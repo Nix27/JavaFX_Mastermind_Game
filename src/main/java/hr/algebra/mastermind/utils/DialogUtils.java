@@ -5,11 +5,11 @@ import javafx.scene.control.Alert;
 public final class DialogUtils {
     private DialogUtils(){}
 
-    public static void showInvalidCodeWarning(){
+    public static void showWarning(String title, String header, String text){
         Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("Invalid code");
-        alert.setHeaderText("Code is not valid");
-        alert.setContentText("All circles of code should be filled with color!");
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(text);
 
         alert.showAndWait();
     }

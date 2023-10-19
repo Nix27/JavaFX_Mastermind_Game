@@ -179,7 +179,7 @@
             </HBox>
          </children>
       </VBox>
-      <HBox fx:id="codeHBox" layoutX="210.0" layoutY="89.0" prefHeight="47.0" prefWidth="186.0">
+      <HBox fx:id="codeHBox" layoutX="210.0" layoutY="89.0" prefHeight="47.0" prefWidth="186.0" style="-fx-background-color: #585858;">
          <children>
             <Circle fill="#848484" radius="23.0" stroke="BLACK" strokeType="INSIDE" />
             <Circle fill="#848484" radius="23.0" stroke="BLACK" strokeType="INSIDE" />
@@ -250,6 +250,7 @@
             </Label>
             <Label fx:id="lbPlayer1Role" layoutX="60.0" layoutY="37.0" text="Label" textFill="WHITE" />
             <Label fx:id="lbPlayer1Points" layoutX="60.0" layoutY="57.0" text="Label" textFill="WHITE" />
+            <Circle fx:id="player1Indicator" fill="#14ff00" layoutX="86.0" layoutY="23.0" radius="8.0" stroke="BLACK" strokeType="INSIDE" />
          </children>
       </AnchorPane>
       <AnchorPane layoutX="50.0" layoutY="277.0" prefHeight="80.0" prefWidth="100.0">
@@ -271,6 +272,7 @@
             </Label>
             <Label fx:id="lbPlayer2Role" layoutX="60.0" layoutY="37.0" text="Label" textFill="WHITE" />
             <Label fx:id="lbPlayer2Points" layoutX="60.0" layoutY="57.0" text="Label" textFill="WHITE" />
+            <Circle fx:id="player2Indicator" fill="#14ff00" layoutX="86.0" layoutY="24.0" radius="8.0" stroke="BLACK" strokeType="INSIDE" />
          </children>
       </AnchorPane>
       <AnchorPane fx:id="apStartGame" layoutX="28.0" layoutY="68.0" prefHeight="104.0" prefWidth="143.0">
