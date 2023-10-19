@@ -10,6 +10,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -24,6 +25,7 @@ import java.util.List;
 public class MastermindController {
     private final int NUM_OF_GUESS_ROWS = 10;
 
+    public AnchorPane apStartGame;
     public FlowPane guessColorsFlowPane;
     public FlowPane hintColorsFlowPane;
     public HBox codeHBox;
@@ -170,6 +172,7 @@ public class MastermindController {
         enableCodeCircles(true);
         btnSetCode.setVisible(true);
         enableColorCircles(true);
+        apStartGame.setVisible(false);
     }
 
     private boolean isValidCode(){
@@ -284,11 +287,13 @@ public class MastermindController {
         enableCodeCircles(false);
         resetGuessRows();
         currentRow.setActiveGuessCircles(false);
+        currentRow.setActiveHintCircles(false);
         currentRow = codeGuessRows.get(0);
         btnNextTurn.setVisible(false);
         btnSetCode.setVisible(false);
         btnStartGame.setVisible(true);
         spNumberOfRounds.setValueFactory(spinnerValueFactory);
+        apStartGame.setVisible(true);
     }
 
     public void saveGame(){
@@ -302,6 +307,7 @@ public class MastermindController {
                 player1,
                 player2,
                 currentTurn,
+                apStartGame.isVisible(),
                 btnSetCode.isVisible(),
                 btnNextTurn.isVisible());
 
@@ -345,6 +351,7 @@ public class MastermindController {
             currentRow = codeGuessRows.get(loadedGameState.getIndexOfCurrentRow());
             numberOfRounds = loadedGameState.getNumberOfRounds();
             currentTurn = loadedGameState.getCurrentTurn();
+            apStartGame.setVisible(loadedGameState.getIsStartGameVisible());
             player1 = loadedGameState.getPlayer1();
             player2 = loadedGameState.getPlayer2();
 

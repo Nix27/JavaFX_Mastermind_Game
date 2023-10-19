@@ -15,7 +15,7 @@
 
 <AnchorPane prefHeight="700.0" prefWidth="700.0" style="-fx-background-color: #373636;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="hr.algebra.mastermind.controller.MastermindController">
    <children>
-      <VBox fx:id="guessRowsVBox" layoutX="245.0" layoutY="167.0" prefHeight="483.0" prefWidth="234.0">
+      <VBox fx:id="guessRowsVBox" layoutX="210.0" layoutY="168.0" prefHeight="483.0" prefWidth="234.0">
          <children>
             <HBox prefHeight="47.0" prefWidth="304.0">
                <children>
@@ -179,7 +179,7 @@
             </HBox>
          </children>
       </VBox>
-      <HBox fx:id="codeHBox" layoutX="245.0" layoutY="88.0" prefHeight="47.0" prefWidth="186.0">
+      <HBox fx:id="codeHBox" layoutX="210.0" layoutY="89.0" prefHeight="47.0" prefWidth="186.0">
          <children>
             <Circle fill="#848484" radius="23.0" stroke="BLACK" strokeType="INSIDE" />
             <Circle fill="#848484" radius="23.0" stroke="BLACK" strokeType="INSIDE" />
@@ -192,12 +192,12 @@
             <Font name="System Bold" size="30.0" />
          </font>
       </Label>
-      <Label layoutX="32.0" layoutY="392.0" text="Colors" textFill="WHITE">
+      <Label layoutX="483.0" layoutY="261.0" text="Colors" textFill="WHITE">
          <font>
             <Font name="System Bold" size="18.0" />
          </font>
       </Label>
-      <FlowPane fx:id="guessColorsFlowPane" layoutX="32.0" layoutY="419.0" prefHeight="93.0" prefWidth="143.0">
+      <FlowPane fx:id="guessColorsFlowPane" layoutX="483.0" layoutY="288.0" prefHeight="93.0" prefWidth="143.0">
          <children>
             <Circle fill="RED" radius="23.0" stroke="BLACK" strokeType="INSIDE" />
             <Circle fill="#00ff0d" radius="23.0" stroke="BLACK" strokeType="INSIDE" />
@@ -207,18 +207,18 @@
             <Circle fill="#d400ff" radius="23.0" stroke="BLACK" strokeType="INSIDE" />
          </children>
       </FlowPane>
-      <Label layoutX="512.0" layoutY="392.0" text="Hint colors" textFill="WHITE">
+      <Label layoutX="484.0" layoutY="413.0" text="Hint colors" textFill="WHITE">
          <font>
             <Font name="System Bold" size="18.0" />
          </font>
       </Label>
-      <FlowPane fx:id="hintColorsFlowPane" layoutX="511.0" layoutY="419.0" prefHeight="46.0" prefWidth="93.0">
+      <FlowPane fx:id="hintColorsFlowPane" layoutX="483.0" layoutY="440.0" prefHeight="46.0" prefWidth="93.0">
          <children>
             <Circle radius="23.0" stroke="BLACK" strokeType="INSIDE" />
             <Circle fill="WHITE" radius="23.0" stroke="BLACK" strokeType="INSIDE" />
          </children>
       </FlowPane>
-      <Button fx:id="btnSetCode" layoutX="451.0" layoutY="98.0" mnemonicParsing="false" onAction="#startGuessing" prefHeight="26.0" prefWidth="93.0" text="Set code" />
+      <Button fx:id="btnSetCode" layoutX="416.0" layoutY="99.0" mnemonicParsing="false" onAction="#startGuessing" prefHeight="26.0" prefWidth="93.0" text="Set code" />
       <MenuBar layoutY="2.0">
         <menus>
           <Menu mnemonicParsing="false" text="Game">
@@ -230,8 +230,8 @@
           </Menu>
         </menus>
       </MenuBar>
-      <Button fx:id="btnNextTurn" layoutX="515.0" layoutY="167.0" mnemonicParsing="false" onAction="#nextTurn" prefHeight="26.0" prefWidth="85.0" text="Next turn" />
-      <AnchorPane layoutX="28.0" layoutY="188.0" prefHeight="80.0" prefWidth="100.0">
+      <Button fx:id="btnNextTurn" layoutX="469.0" layoutY="168.0" mnemonicParsing="false" onAction="#nextTurn" prefHeight="26.0" prefWidth="85.0" text="Next turn" />
+      <AnchorPane layoutX="50.0" layoutY="181.0" prefHeight="80.0" prefWidth="100.0">
          <children>
             <Label layoutX="6.0" layoutY="9.0" text="Player 1" textFill="WHITE">
                <font>
@@ -252,7 +252,7 @@
             <Label fx:id="lbPlayer1Points" layoutX="60.0" layoutY="57.0" text="Label" textFill="WHITE" />
          </children>
       </AnchorPane>
-      <AnchorPane layoutX="28.0" layoutY="284.0" prefHeight="80.0" prefWidth="100.0">
+      <AnchorPane layoutX="50.0" layoutY="277.0" prefHeight="80.0" prefWidth="100.0">
          <children>
             <Label layoutX="6.0" layoutY="9.0" text="Player 2" textFill="WHITE">
                <font>
@@ -273,7 +273,7 @@
             <Label fx:id="lbPlayer2Points" layoutX="60.0" layoutY="57.0" text="Label" textFill="WHITE" />
          </children>
       </AnchorPane>
-      <AnchorPane layoutX="28.0" layoutY="45.0" prefHeight="128.0" prefWidth="143.0">
+      <AnchorPane fx:id="apStartGame" layoutX="28.0" layoutY="68.0" prefHeight="104.0" prefWidth="143.0">
          <children>
             <Label layoutX="8.0" layoutY="14.0" prefHeight="38.0" prefWidth="54.0" text="Rounds:" textFill="WHITE" wrapText="true" />
             <Spinner fx:id="spNumberOfRounds" layoutX="62.0" layoutY="20.0" prefHeight="18.0" prefWidth="68.0" />

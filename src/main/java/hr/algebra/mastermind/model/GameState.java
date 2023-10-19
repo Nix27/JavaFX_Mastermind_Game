@@ -24,10 +24,11 @@ public final class GameState implements Serializable {
     private final Player player2;
     private final Role currentTurn;
 
+    private final boolean isStartGameVisible;
     private final boolean isBtnSetCodeVisible;
     private final boolean isBtnNextTurnVisible;
 
-    public GameState(Paint selectedColor, Paint selectedHintColor, List<Circle> codeCircles, List<CodeGuessRow> codeGuessRows, int indexOfCurrentRow, int numberOfRounds, Player player1, Player player2, Role currentTurn, boolean isBtnSetCodeVisible, boolean isBtnNextTurnVisible) {
+    public GameState(Paint selectedColor, Paint selectedHintColor, List<Circle> codeCircles, List<CodeGuessRow> codeGuessRows, int indexOfCurrentRow, int numberOfRounds, Player player1, Player player2, Role currentTurn, boolean isStartGameVisible , boolean isBtnSetCodeVisible, boolean isBtnNextTurnVisible) {
         this.selectedColor = selectedColor.toString();
         this.selectedHintColor = selectedHintColor.toString();
         this.indexOfCurrentRow = indexOfCurrentRow;
@@ -35,6 +36,7 @@ public final class GameState implements Serializable {
         this.player1 = player1;
         this.player2 = player2;
         this.currentTurn = currentTurn;
+        this.isStartGameVisible = isStartGameVisible;
         this.isBtnSetCodeVisible = isBtnSetCodeVisible;
         this.isBtnNextTurnVisible = isBtnNextTurnVisible;
 
@@ -90,6 +92,10 @@ public final class GameState implements Serializable {
 
     public Role getCurrentTurn() {
         return currentTurn;
+    }
+
+    public boolean getIsStartGameVisible(){
+        return isStartGameVisible;
     }
 
     public boolean getIsBtnSetCodeVisible(){
