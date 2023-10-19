@@ -2,7 +2,9 @@ package hr.algebra.mastermind.model;
 
 import hr.algebra.mastermind.enums.Role;
 
-public final class Player {
+import java.io.Serializable;
+
+public final class Player implements Serializable {
     private int numberOfPoints = 0;
     private Role role;
     private final Role defaultRole;

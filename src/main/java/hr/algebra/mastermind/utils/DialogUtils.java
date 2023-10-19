@@ -22,4 +22,13 @@ public final class DialogUtils {
 
         alert.showAndWait();
     }
+
+    public static void showErrorDialog(String title, String message){
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setHeaderText(title);
+        alert.setContentText(message);
+
+        alert.showAndWait();
+    }
 }

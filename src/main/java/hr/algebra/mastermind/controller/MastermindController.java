@@ -2,8 +2,10 @@ package hr.algebra.mastermind.controller;
 
 import hr.algebra.mastermind.enums.Role;
 import hr.algebra.mastermind.model.CodeGuessRow;
+import hr.algebra.mastermind.model.GameState;
 import hr.algebra.mastermind.model.Player;
 import hr.algebra.mastermind.utils.DialogUtils;
+import hr.algebra.mastermind.utils.FileUtils;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
@@ -15,6 +17,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,10 +41,10 @@ public class MastermindController {
     private Paint selectedColor;
     private Paint selectedHintColor;
 
-    private final List<Circle> colorCircles = new ArrayList<>();
-    private final List<Circle> hintColorCircles = new ArrayList<>();
-    private final List<Circle> codeCircles = new ArrayList<>();
-    private final List<CodeGuessRow> codeGuessRows = new ArrayList<>();
+    private List<Circle> colorCircles = new ArrayList<>();
+    private List<Circle> hintColorCircles = new ArrayList<>();
+    private List<Circle> codeCircles = new ArrayList<>();
+    private List<CodeGuessRow> codeGuessRows = new ArrayList<>();
 
     private CodeGuessRow currentRow;
 
@@ -166,6 +169,7 @@ public class MastermindController {
         numberOfRounds = spNumberOfRounds.getValue();
         enableCodeCircles(true);
         btnSetCode.setVisible(true);
+        enableColorCircles(true);
     }
 
     private boolean isValidCode(){
@@ -209,7 +213,11 @@ public class MastermindController {
         if(currentTurn == Role.Codemaker){
             nextRow();
             currentTurn = Role.Codebreaker;
+            enableColorCircles(true);
+            enableHintColorCircles(false);
         }else{
+            enableColorCircles(false);
+            enableHintColorCircles(true);
             currentRow.setActiveGuessCircles(false);
             currentRow.setActiveHintCircles(true);
             currentTurn = Role.Codemaker;
@@ -281,5 +289,72 @@ public class MastermindController {
         btnSetCode.setVisible(false);
         btnStartGame.setVisible(true);
         spNumberOfRounds.setValueFactory(spinnerValueFactory);
+    }
+
+    public void saveGame(){
+        var gameStateToSave = new GameState(
+                selectedColor,
+                selectedHintColor,
+                codeCircles,
+                codeGuessRows,
+                codeGuessRows.indexOf(currentRow),
+                numberOfRounds,
+                player1,
+                player2,
+                currentTurn,
+                btnSetCode.isVisible(),
+                btnNextTurn.isVisible());
+
+        try {
+            FileUtils.save(gameStateToSave, "gameState.ser");
+        } catch (IOException e) {
+            DialogUtils.showErrorDialog("Save error", "Unable to save game!");
+            e.printStackTrace();
+        }
+    }
+
+    public void loadGame(){
+        try {
+            GameState loadedGameState = FileUtils.read("gameState.ser");
+
+            for(var colorCode : loadedGameState.getCodeColors()){
+                int indexOfCircle = loadedGameState.getCodeColors().indexOf(colorCode);
+                codeCircles.get(indexOfCircle).setFill(Color.web(colorCode));
+            }
+
+            for(var guessColorsOfRow : loadedGameState.getColorsOfGuessCircles()){
+                int indexOfRow = loadedGameState.getColorsOfGuessCircles().indexOf(guessColorsOfRow);
+                List<Circle> guessCircles = codeGuessRows.get(indexOfRow).getGuessCircles();
+
+                for(int i = 0; i < guessColorsOfRow.size(); i++){
+                    guessCircles.get(i).setFill(Color.web(guessColorsOfRow.get(i)));
+                }
+            }
+
+            for(var hintColorsOfRow : loadedGameState.getColorsOfHintCircles()){
+                int indexOfRow = loadedGameState.getColorsOfHintCircles().indexOf(hintColorsOfRow);
+                List<Circle> hintCircles = codeGuessRows.get(indexOfRow).getHintCircles();
+
+                for(int i = 0; i < hintColorsOfRow.size(); i++){
+                    hintCircles.get(i).setFill(Color.web(hintColorsOfRow.get(i)));
+                }
+            }
+
+            selectedColor = loadedGameState.getSelectedColor();
+            selectedHintColor = loadedGameState.getSelectedHintColor();
+            currentRow = codeGuessRows.get(loadedGameState.getIndexOfCurrentRow());
+            numberOfRounds = loadedGameState.getNumberOfRounds();
+            currentTurn = loadedGameState.getCurrentTurn();
+            player1 = loadedGameState.getPlayer1();
+            player2 = loadedGameState.getPlayer2();
+
+            showPlayerInfo();
+            btnSetCode.setVisible(loadedGameState.getIsBtnSetCodeVisible());
+            btnNextTurn.setVisible(loadedGameState.getIsBtnNextTurnVisible());
+            currentRow.setActiveGuessCircles(true);
+        } catch (IOException | ClassNotFoundException e) {
+            DialogUtils.showErrorDialog("Load error", "Unable to load game!");
+            e.printStackTrace();
+        }
     }
 }

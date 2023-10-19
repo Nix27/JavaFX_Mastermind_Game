@@ -221,9 +221,11 @@
       <Button fx:id="btnSetCode" layoutX="451.0" layoutY="98.0" mnemonicParsing="false" onAction="#startGuessing" prefHeight="26.0" prefWidth="93.0" text="Set code" />
       <MenuBar layoutY="2.0">
         <menus>
-          <Menu mnemonicParsing="false" text="File">
+          <Menu mnemonicParsing="false" text="Game">
             <items>
               <MenuItem mnemonicParsing="false" onAction="#newGame" text="New Game" />
+                  <MenuItem mnemonicParsing="false" onAction="#saveGame" text="Save" />
+                  <MenuItem mnemonicParsing="false" onAction="#loadGame" text="Load" />
             </items>
           </Menu>
         </menus>
