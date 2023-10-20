@@ -282,5 +282,6 @@
             <Button fx:id="btnStartGame" layoutX="34.0" layoutY="64.0" mnemonicParsing="false" onAction="#startGame" text="Start game" />
          </children>
       </AnchorPane>
+      <Label fx:id="lbDescriptionOfCurrentTurn" layoutX="210.0" layoutY="144.0" textFill="WHITE" />
    </children>
 </AnchorPane>
