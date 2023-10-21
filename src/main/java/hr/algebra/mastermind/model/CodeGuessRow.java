@@ -47,11 +47,11 @@ public final class CodeGuessRow implements Serializable {
     }
 
     public List<Circle> getGuessCircles() {
-        return guessCircles;
+        return new ArrayList<>(guessCircles);
     }
 
     public List<Circle> getHintCircles() {
-        return hintCircles;
+        return new ArrayList<>(hintCircles);
     }
 
     public void setActiveGuessCircles(boolean isActive){
@@ -80,6 +80,16 @@ public final class CodeGuessRow implements Serializable {
         for(var hintCircle : hintCircles){
             hintCircle.setFill(defaultCircleColor);
         }
+    }
+
+    public boolean checkForDuplicatesInGuess(Paint desiredColor){
+        for(var guessCircle : guessCircles){
+            if(guessCircle.getFill() == desiredColor){
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public List<String> getGuessColors(){

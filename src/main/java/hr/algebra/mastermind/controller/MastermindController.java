@@ -1,6 +1,7 @@
 package hr.algebra.mastermind.controller;
 
 import hr.algebra.mastermind.enums.Role;
+import hr.algebra.mastermind.model.Code;
 import hr.algebra.mastermind.model.CodeGuessRow;
 import hr.algebra.mastermind.model.GameState;
 import hr.algebra.mastermind.model.Player;
@@ -25,7 +26,7 @@ import java.util.List;
 public class MastermindController {
     private final int NUM_OF_GUESS_ROWS = 10;
     private final String CODEMAKER_SETS_CODE = "Codemaker sets the code";
-    private final String CODEBREAKER_GUESS = "Codebreaker guesses code";
+    private final String CODEBREAKER_GUESS = "Codebreaker guesses the code";
     private final String CODEMAKER_GIVES_HINT = "Codemaker gives a hint";
     private final String GAME_STATE_FILE = "gameState.ser";
 
@@ -52,7 +53,7 @@ public class MastermindController {
 
     private final List<Circle> colorCircles = new ArrayList<>();
     private final List<Circle> hintColorCircles = new ArrayList<>();
-    private final List<Circle> codeCircles = new ArrayList<>();
+    private Code code;
     private final List<CodeGuessRow> codeGuessRows = new ArrayList<>();
 
     private CodeGuessRow currentRow;
@@ -68,12 +69,14 @@ public class MastermindController {
     public void initialize(){
         initColorCircles();
         initHintColorCircles();
-        initCodeCircles();
+        initCode();
         initCodeGuessRows();
         addEventToGuessCircles();
         addEventToHintCircles();
 
-        currentRow = codeGuessRows.get(0);
+        selectedColor = defaultCircleColor;
+        selectedHintColor = defaultCircleColor;
+
         player1 = new Player(Role.Codemaker);
         player2 = new Player(Role.Codebreaker);
 
@@ -89,22 +92,24 @@ public class MastermindController {
 
     public void startGame(){
         numberOfRounds = spNumberOfRounds.getValue();
-        enableCircles(true, codeCircles);
+        enableCircles(true, code.getCodeCircles());
         btnSetCode.setVisible(true);
         enableCircles(true, colorCircles);
         apStartGame.setVisible(false);
         player1Indicator.setVisible(true);
+        currentTurn = Role.Codemaker;
         lbDescriptionOfCurrentTurn.setVisible(true);
         updateDescriptionOfCurrentTurn(CODEMAKER_SETS_CODE);
     }
 
     public void startGuessing(){
-        if(!isValidCircles(codeCircles)){
+        if(!isValidCircles(code.getCodeCircles())){
             DialogUtils.showWarning("Invalid code", "Code is not valid", "All circles of code should be filled with color!");
             return;
         }
 
-        setVisibleCodeCircles(false);
+        code.setVisible(false);
+        currentRow = codeGuessRows.get(0);
         currentRow.setActiveGuessCircles(true);
         currentTurn = Role.Codebreaker;
         setPlayerIndicator();
@@ -119,17 +124,19 @@ public class MastermindController {
 
         if(currentTurn == Role.Codemaker){
             if(checkForRightCode()){
+                code.setVisible(true);
+                DialogUtils.showInfo("Code cracked", "Code is successfully cracked!");
                 nextRound();
                 return;
             }
 
             currentTurn = Role.Codebreaker;
+            updateDescriptionOfCurrentTurn(CODEBREAKER_GUESS);
             nextRow();
             enableCircles(true, colorCircles);
             enableCircles(false, hintColorCircles);
 
             setPlayerIndicator();
-            updateDescriptionOfCurrentTurn(CODEBREAKER_GUESS);
         }else{
             if(!isValidCircles(currentRow.getGuessCircles())){
                 DialogUtils.showWarning("Invalid guess", "Guess is not valid", "All circles of guess should be filled with color!");
@@ -153,16 +160,21 @@ public class MastermindController {
         showPlayerInfo();
         player1Indicator.setVisible(false);
         player2Indicator.setVisible(false);
-        resetCodeCircles();
-        enableCircles(false, codeCircles);
+        code.resetCode();
+        enableCircles(false, code.getCodeCircles());
         resetGuessRows();
-        currentRow.setActiveGuessCircles(false);
-        currentRow.setActiveHintCircles(false);
-        currentRow = codeGuessRows.get(0);
+
+        if(currentRow != null){
+            currentRow.setActiveGuessCircles(false);
+            currentRow.setActiveHintCircles(false);
+            currentRow = null;
+        }
+
         btnNextTurn.setVisible(false);
         btnSetCode.setVisible(false);
         btnStartGame.setVisible(true);
         spNumberOfRounds.setValueFactory(spinnerValueFactory);
+        lbDescriptionOfCurrentTurn.setText("");
         apStartGame.setVisible(true);
     }
 
@@ -170,13 +182,14 @@ public class MastermindController {
         var gameStateToSave = new GameState(
                 selectedColor,
                 selectedHintColor,
-                codeCircles,
+                code.getCodeCircles(),
                 codeGuessRows,
                 codeGuessRows.indexOf(currentRow),
                 numberOfRounds,
                 player1,
                 player2,
                 currentTurn,
+                lbDescriptionOfCurrentTurn.getText(),
                 apStartGame.isVisible(),
                 btnSetCode.isVisible(),
                 btnNextTurn.isVisible());
@@ -191,11 +204,16 @@ public class MastermindController {
 
     public void loadGame(){
         try {
+            if(currentRow != null){
+                currentRow.setActiveGuessCircles(false);
+                currentRow.setActiveHintCircles(false);
+            }
+
             GameState loadedGameState = FileUtils.read(GAME_STATE_FILE);
 
             for(var colorCode : loadedGameState.getCodeColors()){
                 int indexOfCircle = loadedGameState.getCodeColors().indexOf(colorCode);
-                codeCircles.get(indexOfCircle).setFill(Color.web(colorCode));
+                code.getCodeCircles().get(indexOfCircle).setFill(Color.web(colorCode));
             }
 
             for(var guessColorsOfRow : loadedGameState.getColorsOfGuessCircles()){
@@ -218,19 +236,32 @@ public class MastermindController {
 
             selectedColor = loadedGameState.getSelectedColor();
             selectedHintColor = loadedGameState.getSelectedHintColor();
-            currentRow = codeGuessRows.get(loadedGameState.getIndexOfCurrentRow());
+
             numberOfRounds = loadedGameState.getNumberOfRounds();
             currentTurn = loadedGameState.getCurrentTurn();
 
             apStartGame.setVisible(loadedGameState.getIsStartGameVisible());
             player1 = loadedGameState.getPlayer1();
             player2 = loadedGameState.getPlayer2();
-            setPlayerIndicator();
-
             showPlayerInfo();
+
+            if(!loadedGameState.getDescriptionOfCurrentTurn().isBlank()){
+                enableCircles(true, code.getCodeCircles());
+                lbDescriptionOfCurrentTurn.setText(loadedGameState.getDescriptionOfCurrentTurn());
+                setPlayerIndicator();
+            }
+
             btnSetCode.setVisible(loadedGameState.getIsBtnSetCodeVisible());
             btnNextTurn.setVisible(loadedGameState.getIsBtnNextTurnVisible());
-            currentRow.setActiveGuessCircles(true);
+
+            if(loadedGameState.getIndexOfCurrentRow() != -1){
+                code.setVisible(false);
+                currentRow = codeGuessRows.get(loadedGameState.getIndexOfCurrentRow());
+                currentRow.setActiveGuessCircles(true);
+                setPlayerIndicator();
+            }else {
+                code.setVisible(true);
+            }
         } catch (IOException | ClassNotFoundException e) {
             DialogUtils.showErrorDialog("Load error", "Unable to load game!");
             e.printStackTrace();
@@ -243,18 +274,19 @@ public class MastermindController {
         lbDescriptionOfCurrentTurn.setText(description);
     }
 
-    private void initCodeCircles() {
-        for(var node : codeHBox.getChildren()){
-            if(node instanceof Circle codeCircle){
-                codeCircle.setOnMouseClicked(e -> {
-                    if(selectedColor != null){
-                        codeCircle.setFill(selectedColor);
-                    }
-                });
+    private void initCode() {
+        code = new Code(codeHBox);
 
-                codeCircle.setDisable(true);
-                codeCircles.add(codeCircle);
-            }
+        for(var codeCircle : code.getCodeCircles()){
+            codeCircle.setOnMouseClicked(e -> {
+                if(selectedColor != defaultCircleColor){
+                    if(code.checkForDuplicates(selectedColor)){
+                        codeCircle.setFill(selectedColor);
+                    }else {
+                        DialogUtils.showWarning("Duplicates", "Color duplicates", "The code must have different colors!");
+                    }
+                }
+            });
         }
     }
 
@@ -269,7 +301,7 @@ public class MastermindController {
         for(var row : codeGuessRows) {
             for(var hintCircle : row.getHintCircles()){
                 hintCircle.setOnMouseClicked(e -> {
-                    if(selectedHintColor != null)
+                    if(selectedHintColor != defaultCircleColor)
                         hintCircle.setFill(selectedHintColor);
                 });
             }
@@ -280,8 +312,13 @@ public class MastermindController {
         for(var row : codeGuessRows) {
             for(var guessCircle : row.getGuessCircles()){
                 guessCircle.setOnMouseClicked(e -> {
-                    if(selectedColor != null)
-                        guessCircle.setFill(selectedColor);
+                    if(selectedColor != defaultCircleColor){
+                        if(row.checkForDuplicatesInGuess(selectedColor)){
+                            guessCircle.setFill(selectedColor);
+                        }else {
+                            DialogUtils.showWarning("Duplicates", "Color duplicates", "The code must have different colors!");
+                        }
+                    }
                 });
             }
         }
@@ -334,10 +371,6 @@ public class MastermindController {
         return isValid;
     }
 
-    private void setVisibleCodeCircles(boolean isVisible){
-        codeCircles.forEach(c -> c.setVisible(isVisible));
-    }
-
     private boolean checkForRightCode(){
         boolean isRightCode = true;
 
@@ -387,9 +420,9 @@ public class MastermindController {
     private boolean checkIfLastRound(){
         if(numberOfRounds < 1){
             if(player1.getNumberOfPoints() == player2.getNumberOfPoints()){
-                DialogUtils.showGameResult("Draw", "It's draw!");
+                DialogUtils.showInfo("Draw", "It's draw!");
             }else{
-                DialogUtils.showGameResult("Winner","Winner is " + (player1.getNumberOfPoints() > player2.getNumberOfPoints() ? "Player 1!" : "Player 2!"));
+                DialogUtils.showInfo("Winner","Winner is " + (player1.getNumberOfPoints() > player2.getNumberOfPoints() ? "Player 1!" : "Player 2!"));
             }
 
             return true;
@@ -405,11 +438,11 @@ public class MastermindController {
         resetGuessRows();
         switchPlayerRoles();
         currentRow.setActiveHintCircles(false);
-        enableCircles(true, codeCircles);
+        enableCircles(true, code.getCodeCircles());
         btnSetCode.setVisible(true);
         enableCircles(true, colorCircles);
         currentRow = codeGuessRows.get(0);
-        resetCodeCircles();
+        code.resetCode();
         btnNextTurn.setVisible(false);
         currentTurn = Role.Codemaker;
         setPlayerIndicator();
@@ -427,13 +460,6 @@ public class MastermindController {
     private void resetGuessRows(){
         for(var guessRow : codeGuessRows){
             guessRow.resetRow();
-        }
-    }
-
-    private void resetCodeCircles(){
-        for(var codeCircle : codeCircles){
-            codeCircle.setFill(defaultCircleColor);
-            codeCircle.setVisible(true);
         }
     }
 }

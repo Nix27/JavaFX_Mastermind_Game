@@ -14,7 +14,7 @@ public final class DialogUtils {
         alert.showAndWait();
     }
 
-    public static void showGameResult(String title, String message){
+    public static void showInfo(String title, String message){
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
         alert.setHeaderText(title);
