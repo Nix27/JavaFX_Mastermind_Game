@@ -131,13 +131,6 @@ public class MastermindController {
         if (checkIfLastRound()) return;
 
         if (currentTurn == Role.Codemaker) {
-            if (checkForRightCode()) {
-                code.setVisible(true);
-                DialogUtils.showInfo("Code cracked", "Code is successfully cracked!");
-                nextRound();
-                return;
-            }
-
             currentTurn = Role.Codebreaker;
             updateDescriptionOfCurrentTurn(CODEBREAKER_GUESS);
             nextRow();
@@ -148,6 +141,13 @@ public class MastermindController {
         } else {
             if (!isValidCircles(currentRow.getGuessCircles())) {
                 DialogUtils.showWarning("Invalid guess", "Guess is not valid", "All circles of guess should be filled with color!");
+                return;
+            }
+
+            if (checkForRightCode()) {
+                code.setVisible(true);
+                DialogUtils.showInfo("Code cracked", "Code is successfully cracked!");
+                nextRound();
                 return;
             }
 
@@ -200,7 +200,9 @@ public class MastermindController {
                 lbDescriptionOfCurrentTurn.getText(),
                 apStartGame.isVisible(),
                 btnSetCode.isVisible(),
-                btnNextTurn.isVisible());
+                btnNextTurn.isVisible(),
+                colorCircles.get(0).isDisable(),
+                hintColorCircles.get(0).isDisable());
 
         try {
             FileUtils.save(gameStateToSave, GAME_STATE_FILE);
@@ -245,6 +247,9 @@ public class MastermindController {
             selectedColor = loadedGameState.getSelectedColor();
             selectedHintColor = loadedGameState.getSelectedHintColor();
 
+            enableCircles(!loadedGameState.getIsColorsDisabled(), colorCircles);
+            enableCircles(!loadedGameState.getIsHintColorsDisabled(), hintColorCircles);
+
             numberOfRounds = loadedGameState.getNumberOfRounds();
             currentTurn = loadedGameState.getCurrentTurn();
 
@@ -281,7 +286,6 @@ public class MastermindController {
     }
 
     //private methods
-
     private void updateDescriptionOfCurrentTurn(String description) {
         lbDescriptionOfCurrentTurn.setText(description);
     }
@@ -386,8 +390,8 @@ public class MastermindController {
     private boolean checkForRightCode() {
         boolean isRightCode = true;
 
-        for (var hintCircle : currentRow.getHintCircles()) {
-            if (hintCircle.getFill() != Color.BLACK) {
+        for(int i = 0; i < code.getCodeCircles().size(); i++){
+            if(code.getCodeCircles().get(i).getFill() != currentRow.getGuessCircles().get(i).getFill()){
                 isRightCode = false;
                 break;
             }

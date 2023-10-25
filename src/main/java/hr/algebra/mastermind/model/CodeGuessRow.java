@@ -84,7 +84,7 @@ public final class CodeGuessRow implements Serializable {
 
     public boolean checkForDuplicatesInGuess(Paint desiredColor){
         for(var guessCircle : guessCircles){
-            if(guessCircle.getFill() == desiredColor){
+            if(guessCircle.getFill().equals(desiredColor)){
                 return false;
             }
         }

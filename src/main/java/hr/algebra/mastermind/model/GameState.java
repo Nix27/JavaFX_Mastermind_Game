@@ -8,7 +8,6 @@ import javafx.scene.shape.Circle;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public final class GameState implements Serializable {
     private final String selectedColor;
@@ -29,8 +28,10 @@ public final class GameState implements Serializable {
     private final boolean isStartGameVisible;
     private final boolean isBtnSetCodeVisible;
     private final boolean isBtnNextTurnVisible;
+    private final boolean isColorsDisabled;
+    private final boolean isHintColorsDisabled;
 
-    public GameState(Paint selectedColor, Paint selectedHintColor, List<Circle> codeCircles, List<CodeGuessRow> codeGuessRows, int indexOfCurrentRow, int numberOfRounds, Player player1, Player player2, Role currentTurn, String descriptionOfCurrentTurn, boolean isStartGameVisible , boolean isBtnSetCodeVisible, boolean isBtnNextTurnVisible) {
+    public GameState(Paint selectedColor, Paint selectedHintColor, List<Circle> codeCircles, List<CodeGuessRow> codeGuessRows, int indexOfCurrentRow, int numberOfRounds, Player player1, Player player2, Role currentTurn, String descriptionOfCurrentTurn, boolean isStartGameVisible , boolean isBtnSetCodeVisible, boolean isBtnNextTurnVisible, boolean isColorsDisabled, boolean isHintColorsDisabled) {
         this.selectedColor = selectedColor.toString();
         this.selectedHintColor = selectedHintColor.toString();
         this.indexOfCurrentRow = indexOfCurrentRow;
@@ -42,6 +43,8 @@ public final class GameState implements Serializable {
         this.isStartGameVisible = isStartGameVisible;
         this.isBtnSetCodeVisible = isBtnSetCodeVisible;
         this.isBtnNextTurnVisible = isBtnNextTurnVisible;
+        this.isColorsDisabled = isColorsDisabled;
+        this.isHintColorsDisabled = isHintColorsDisabled;
 
         codeColors = new ArrayList<>();
         colorsOfGuessCircles = new ArrayList<>();
@@ -111,5 +114,13 @@ public final class GameState implements Serializable {
 
     public boolean getIsBtnNextTurnVisible(){
         return isBtnNextTurnVisible;
+    }
+
+    public boolean getIsColorsDisabled(){
+        return isColorsDisabled;
+    }
+
+    public boolean getIsHintColorsDisabled(){
+        return isHintColorsDisabled;
     }
 }
