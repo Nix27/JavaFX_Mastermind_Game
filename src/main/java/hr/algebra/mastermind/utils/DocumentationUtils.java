@@ -5,7 +5,6 @@ import java.lang.reflect.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -161,12 +160,6 @@ public final class DocumentationUtils {
                     .map(Class::getSimpleName)
                     .collect(Collectors.joining(", ", "throws ", "")));
         }
-    }
-
-    private static void addAnnotationsToHtmlContent(Executable executable) {
-        htmlContent.append(Stream.of(executable.getAnnotations())
-                .map(Objects::toString)
-                .collect(Collectors.joining(System.lineSeparator())));
     }
 
     private static void addParametersToHtmlContent(Executable executable){
