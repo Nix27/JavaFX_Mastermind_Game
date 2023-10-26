@@ -5,6 +5,8 @@ import java.lang.reflect.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class DocumentationUtils {
@@ -34,14 +36,9 @@ public final class DocumentationUtils {
 
                 Class<?> deserializedClass = Class.forName(fullyQualifiedName);
 
-                Field[] classFields = deserializedClass.getDeclaredFields();
-                addFieldsToHtmlContent(classFields);
-
-                Constructor<?>[] classConstructors = deserializedClass.getDeclaredConstructors();
-                addConstructorsToHtmlContent(classConstructors);
-
-                Method[] classMethods = deserializedClass.getDeclaredMethods();
-                addMethodsToHtmlContent(classMethods);
+                addFieldsToHtmlContent(deserializedClass);
+                addConstructorsToHtmlContent(deserializedClass);
+                addMethodsToHtmlContent(deserializedClass);
             }
 
             htmlContent.append("""    
@@ -64,8 +61,10 @@ public final class DocumentationUtils {
         return reducedClassPath.replace('\\', '.');
     }
 
-    private static void addFieldsToHtmlContent(Field[] classFields){
+    private static void addFieldsToHtmlContent(Class<?> deserializedClass){
         htmlContent.append("<h2>Fields</h2>");
+        Field[] classFields = deserializedClass.getDeclaredFields();
+
         for (var classField : classFields){
             htmlContent.append("<h3>");
 
@@ -94,8 +93,10 @@ public final class DocumentationUtils {
         }
     }
 
-    private static void addConstructorsToHtmlContent(Constructor<?>[] classConstructors){
+    private static void addConstructorsToHtmlContent(Class<?> deserializedClass){
         htmlContent.append("<h2>Constructor</h2>");
+        Constructor<?>[] classConstructors = deserializedClass.getDeclaredConstructors();
+
         for(var classConstructor : classConstructors){
             htmlContent.append("<h3>");
 
@@ -111,15 +112,16 @@ public final class DocumentationUtils {
 
             htmlContent.append(classConstructor.getName());
 
-            Parameter[] parameters = classConstructor.getParameters();
-            addParametersToHtmlContent(parameters);
+            addParametersToHtmlContent(classConstructor);
 
             htmlContent.append("</h3>");
         }
     }
 
-    private static void addMethodsToHtmlContent(Method[] classMethods){
+    private static void addMethodsToHtmlContent(Class<?> deserializedClass){
         htmlContent.append("<h2>Methods</h2>");
+        Method[] classMethods = deserializedClass.getDeclaredMethods();
+
         for(var classMethod : classMethods){
             htmlContent.append("<h3>");
 
@@ -143,15 +145,34 @@ public final class DocumentationUtils {
 
             htmlContent.append(classMethod.getName());
 
-            Parameter[] parameters = classMethod.getParameters();
-            addParametersToHtmlContent(parameters);
+            addParametersToHtmlContent(classMethod);
+
+            htmlContent.append(" ");
+
+            addExceptionsToHtmlContent(classMethod);
 
             htmlContent.append("</h3>");
         }
     }
 
-    private static void addParametersToHtmlContent(Parameter[] parameters){
+    private static void addExceptionsToHtmlContent(Executable executable) {
+        if(executable.getExceptionTypes().length > 0){
+            htmlContent.append(Stream.of(executable.getExceptionTypes())
+                    .map(Class::getSimpleName)
+                    .collect(Collectors.joining(", ", "throws ", "")));
+        }
+    }
+
+    private static void addAnnotationsToHtmlContent(Executable executable) {
+        htmlContent.append(Stream.of(executable.getAnnotations())
+                .map(Objects::toString)
+                .collect(Collectors.joining(System.lineSeparator())));
+    }
+
+    private static void addParametersToHtmlContent(Executable executable){
         htmlContent.append("(");
+
+        Parameter[] parameters = executable.getParameters();
 
         for(int i = 0; i < parameters.length; i++){
             if(i < parameters.length - 1){

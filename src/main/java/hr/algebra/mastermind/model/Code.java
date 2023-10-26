@@ -41,7 +41,7 @@ public final class Code {
 
     public boolean checkForDuplicates(Paint desiredColor){
         for(var codeCircle : codeCircles){
-            if(codeCircle.getFill() == desiredColor){
+            if(codeCircle.getFill().equals(desiredColor)){
                 return false;
             }
         }
