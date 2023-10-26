@@ -270,7 +270,12 @@ public class MastermindController {
             if (loadedGameState.getIndexOfCurrentRow() != -1) {
                 code.setVisible(false);
                 currentRow = codeGuessRows.get(loadedGameState.getIndexOfCurrentRow());
-                currentRow.setActiveGuessCircles(true);
+                if(currentTurn.equals(Role.Codemaker)){
+                    currentRow.setActiveHintCircles(true);
+                }else {
+                    currentRow.setActiveGuessCircles(true);
+                }
+
                 setPlayerIndicator();
             } else {
                 code.setVisible(true);
