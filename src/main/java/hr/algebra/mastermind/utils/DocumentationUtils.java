@@ -26,6 +26,7 @@ public final class DocumentationUtils {
             List<String> classFiles = paths
                     .map(Path::toString)
                     .filter(file -> file.endsWith(".class"))
+                    .filter(file -> !file.endsWith("module-info.class"))
                     .toList();
 
             for(var classFile : classFiles){
