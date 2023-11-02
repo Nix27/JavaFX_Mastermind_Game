@@ -64,15 +64,14 @@ public final class CodeGuessRow implements Serializable {
     }
 
     public void setActiveHintCircles(boolean isActive){
-        if(!isActive)
-            parent.setBackground(defaultBackground);
-
         for(var hintCircle : hintCircles){
             hintCircle.setDisable(!isActive);
         }
     }
 
     public void resetRow(){
+        parent.setBackground(defaultBackground);
+
         for(var guessCircle : guessCircles){
             guessCircle.setFill(defaultCircleColor);
         }

@@ -113,10 +113,7 @@ public class MastermindController {
         lbDescriptionOfCurrentTurn.setVisible(true);
         updateDescriptionOfCurrentTurn(CODEMAKER_SETS_CODE);
 
-        if(MastermindApplication.loggedInNetworkRole.name().equals(NetworkRole.CLIENT.name())){
-            var gameStateForServer = createGameState();
-            NetworkingUtils.sendGameStateToServer(gameStateForServer);
-        }
+        sendGameStateIfClient();
     }
 
     public void startGuessing() {
@@ -134,6 +131,8 @@ public class MastermindController {
         btnSetCode.setVisible(false);
         btnNextTurn.setVisible(true);
         updateDescriptionOfCurrentTurn(CODEBREAKER_GUESS);
+
+        sendGameStateIfClient();
     }
 
     public void nextTurn() {
@@ -169,6 +168,8 @@ public class MastermindController {
             setPlayerIndicator();
             updateDescriptionOfCurrentTurn(CODEMAKER_GIVES_HINT);
         }
+
+        sendGameStateIfClient();
     }
 
     public void newGame() {
@@ -193,6 +194,8 @@ public class MastermindController {
         spNumberOfRounds.setValueFactory(spinnerValueFactory);
         lbDescriptionOfCurrentTurn.setText("");
         apStartGame.setVisible(true);
+
+        sendGameStateIfClient();
     }
 
     public void saveGame() {
@@ -222,26 +225,19 @@ public class MastermindController {
     }
 
     public void loadGameState(GameState gameState){
-        for (var colorCode : gameState.getCodeColors()) {
-            int indexOfCircle = gameState.getCodeColors().indexOf(colorCode);
-            code.getCodeCircles().get(indexOfCircle).setFill(Color.web(colorCode));
+        for(var codeCircle: code.getCodeCircles()){
+            int indexOfColor = code.getCodeCircles().indexOf(codeCircle);
+            codeCircle.setFill(Color.web(gameState.getCodeColors().get(indexOfColor)));
         }
 
-        for (var guessColorsOfRow : gameState.getColorsOfGuessCircles()) {
-            int indexOfRow = gameState.getColorsOfGuessCircles().indexOf(guessColorsOfRow);
-            List<Circle> guessCircles = codeGuessRows.get(indexOfRow).getGuessCircles();
+        for(var codeGuessRow : codeGuessRows){
+            int indexOfRow = codeGuessRows.indexOf(codeGuessRow);
+            List<String> colorsOfGuessCircles = gameState.getColorsOfGuessCircles().get(indexOfRow);
+            List<String> colorsOfHintCircles = gameState.getColorsOfHintCircles().get(indexOfRow);
 
-            for (int i = 0; i < guessColorsOfRow.size(); i++) {
-                guessCircles.get(i).setFill(Color.web(guessColorsOfRow.get(i)));
-            }
-        }
-
-        for (var hintColorsOfRow : gameState.getColorsOfHintCircles()) {
-            int indexOfRow = gameState.getColorsOfHintCircles().indexOf(hintColorsOfRow);
-            List<Circle> hintCircles = codeGuessRows.get(indexOfRow).getHintCircles();
-
-            for (int i = 0; i < hintColorsOfRow.size(); i++) {
-                hintCircles.get(i).setFill(Color.web(hintColorsOfRow.get(i)));
+            for(int i = 0; i < colorsOfGuessCircles.size(); i++){
+                codeGuessRow.getGuessCircles().get(i).setFill(Color.web(colorsOfGuessCircles.get(i)));
+                codeGuessRow.getHintCircles().get(i).setFill(Color.web(colorsOfHintCircles.get(i)));
             }
         }
 
@@ -301,16 +297,20 @@ public class MastermindController {
                     if (code.checkForDuplicates(selectedColor)) {
                         codeCircle.setFill(selectedColor);
 
-                        if(MastermindApplication.loggedInNetworkRole.name().equals(NetworkRole.CLIENT.name())){
-                            var gameStateForServer = createGameState();
-                            NetworkingUtils.sendGameStateToServer(gameStateForServer);
-                        }
+                        sendGameStateIfClient();
 
                     } else {
                         DialogUtils.showWarning("Duplicates", "Color duplicates", "The code must have different colors!");
                     }
                 }
             });
+        }
+    }
+
+    private void sendGameStateIfClient(){
+        if(MastermindApplication.loggedInNetworkRole.name().equals(NetworkRole.CLIENT.name())){
+            var gameStateForServer = createGameState();
+            NetworkingUtils.sendGameStateToServer(gameStateForServer);
         }
     }
 
@@ -501,6 +501,7 @@ public class MastermindController {
         currentTurn = Role.Codemaker;
         setPlayerIndicator();
         updateDescriptionOfCurrentTurn(CODEMAKER_SETS_CODE);
+        sendGameStateIfClient();
     }
 
     private void switchPlayerRoles() {
