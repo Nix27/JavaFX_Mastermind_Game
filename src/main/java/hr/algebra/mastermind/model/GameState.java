@@ -26,12 +26,12 @@ public final class GameState implements Serializable {
     private final String descriptionOfCurrentTurn;
 
     private final boolean isStartGameVisible;
-    private final boolean isBtnSetCodeVisible;
+    private final boolean isCodeVisible;
     private final boolean isBtnNextTurnVisible;
     private final boolean isColorsDisabled;
     private final boolean isHintColorsDisabled;
 
-    public GameState(Paint selectedColor, Paint selectedHintColor, List<Circle> codeCircles, List<CodeGuessRow> codeGuessRows, int indexOfCurrentRow, int numberOfRounds, Player player1, Player player2, Role currentTurn, String descriptionOfCurrentTurn, boolean isStartGameVisible , boolean isBtnSetCodeVisible, boolean isBtnNextTurnVisible, boolean isColorsDisabled, boolean isHintColorsDisabled) {
+    public GameState(Paint selectedColor, Paint selectedHintColor, List<Circle> codeCircles, List<CodeGuessRow> codeGuessRows, int indexOfCurrentRow, int numberOfRounds, Player player1, Player player2, Role currentTurn, String descriptionOfCurrentTurn, boolean isStartGameVisible , boolean isCodeVisible, boolean isBtnNextTurnVisible, boolean isColorsDisabled, boolean isHintColorsDisabled) {
         this.selectedColor = selectedColor.toString();
         this.selectedHintColor = selectedHintColor.toString();
         this.indexOfCurrentRow = indexOfCurrentRow;
@@ -41,7 +41,7 @@ public final class GameState implements Serializable {
         this.currentTurn = currentTurn;
         this.descriptionOfCurrentTurn = descriptionOfCurrentTurn;
         this.isStartGameVisible = isStartGameVisible;
-        this.isBtnSetCodeVisible = isBtnSetCodeVisible;
+        this.isCodeVisible = isCodeVisible;
         this.isBtnNextTurnVisible = isBtnNextTurnVisible;
         this.isColorsDisabled = isColorsDisabled;
         this.isHintColorsDisabled = isHintColorsDisabled;
@@ -108,8 +108,8 @@ public final class GameState implements Serializable {
         return isStartGameVisible;
     }
 
-    public boolean getIsBtnSetCodeVisible(){
-        return isBtnSetCodeVisible;
+    public boolean getIsCodeVisible(){
+        return isCodeVisible;
     }
 
     public boolean getIsBtnNextTurnVisible(){

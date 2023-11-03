@@ -35,7 +35,7 @@ public final class Code {
     public void resetCode(){
         for(var codeCircle : codeCircles){
             codeCircle.setFill(defaultCircleColor);
-            codeCircle.setVisible(true);
+            //codeCircle.setVisible(true);
         }
     }
 

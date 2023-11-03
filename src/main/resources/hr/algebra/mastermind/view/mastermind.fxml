@@ -179,12 +179,13 @@
             </HBox>
          </children>
       </VBox>
-      <HBox fx:id="codeHBox" layoutX="210.0" layoutY="89.0" prefHeight="47.0" prefWidth="186.0" style="-fx-background-color: #585858;">
+      <HBox fx:id="codeHBox" layoutX="210.0" layoutY="89.0" prefHeight="47.0" prefWidth="262.0" style="-fx-background-color: #373636;">
          <children>
             <Circle fill="#848484" radius="23.0" stroke="BLACK" strokeType="INSIDE" />
             <Circle fill="#848484" radius="23.0" stroke="BLACK" strokeType="INSIDE" />
             <Circle fill="#848484" radius="23.0" stroke="BLACK" strokeType="INSIDE" />
             <Circle fill="#848484" radius="23.0" stroke="BLACK" strokeType="INSIDE" />
+            <Button fx:id="btnSetCode" mnemonicParsing="false" onAction="#startGuessing" prefHeight="47.0" prefWidth="77.0" text="Set code" />
          </children>
       </HBox>
       <Label layoutX="252.0" layoutY="22.0" text="Mastermind" textFill="WHITE">
@@ -218,7 +219,6 @@
             <Circle fill="WHITE" radius="23.0" stroke="BLACK" strokeType="INSIDE" />
          </children>
       </FlowPane>
-      <Button fx:id="btnSetCode" layoutX="416.0" layoutY="99.0" mnemonicParsing="false" onAction="#startGuessing" prefHeight="26.0" prefWidth="93.0" text="Set code" />
       <MenuBar layoutY="2.0">
         <menus>
           <Menu mnemonicParsing="false" text="Game">

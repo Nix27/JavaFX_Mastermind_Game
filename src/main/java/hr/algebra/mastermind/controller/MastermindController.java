@@ -11,7 +11,6 @@ import hr.algebra.mastermind.utils.DialogUtils;
 import hr.algebra.mastermind.utils.DocumentationUtils;
 import hr.algebra.mastermind.utils.FileUtils;
 import hr.algebra.mastermind.utils.NetworkingUtils;
-import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
@@ -25,15 +24,8 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class MastermindController {
     private final int NUM_OF_GUESS_ROWS = 10;
@@ -92,14 +84,22 @@ public class MastermindController {
         player1 = new Player(Role.Codemaker);
         player2 = new Player(Role.Codebreaker);
 
+        if(MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SERVER)){
+            boolean isVisible = player1.getRole().equals(Role.Codemaker);
+            codeHBox.setVisible(isVisible);
+            btnSetCode.setVisible(isVisible);
+        }else {
+            boolean isVisible = player2.getRole().equals(Role.Codemaker);
+            codeHBox.setVisible(isVisible);
+            btnSetCode.setVisible(isVisible);
+        }
+
         showPlayerInfo();
         player1Indicator.setVisible(false);
         player2Indicator.setVisible(false);
 
         spNumberOfRounds.setValueFactory(spinnerValueFactory);
-        btnSetCode.setVisible(false);
         btnNextTurn.setVisible(false);
-        lbDescriptionOfCurrentTurn.setVisible(false);
     }
 
     public void startGame() {
@@ -113,7 +113,7 @@ public class MastermindController {
         lbDescriptionOfCurrentTurn.setVisible(true);
         updateDescriptionOfCurrentTurn(CODEMAKER_SETS_CODE);
 
-        sendGameStateIfClient();
+        sendGameState();
     }
 
     public void startGuessing() {
@@ -122,7 +122,6 @@ public class MastermindController {
             return;
         }
 
-        code.setVisible(false);
         currentRow = codeGuessRows.get(0);
         currentRow.setActiveGuessCircles(true);
         currentTurn = Role.Codebreaker;
@@ -132,7 +131,7 @@ public class MastermindController {
         btnNextTurn.setVisible(true);
         updateDescriptionOfCurrentTurn(CODEBREAKER_GUESS);
 
-        sendGameStateIfClient();
+        sendGameState();
     }
 
     public void nextTurn() {
@@ -169,7 +168,7 @@ public class MastermindController {
             updateDescriptionOfCurrentTurn(CODEMAKER_GIVES_HINT);
         }
 
-        sendGameStateIfClient();
+        sendGameState();
     }
 
     public void newGame() {
@@ -195,7 +194,7 @@ public class MastermindController {
         lbDescriptionOfCurrentTurn.setText("");
         apStartGame.setVisible(true);
 
-        sendGameStateIfClient();
+        sendGameState();
     }
 
     public void saveGame() {
@@ -261,11 +260,10 @@ public class MastermindController {
             setPlayerIndicator();
         }
 
-        btnSetCode.setVisible(gameState.getIsBtnSetCodeVisible());
         btnNextTurn.setVisible(gameState.getIsBtnNextTurnVisible());
 
         if (gameState.getIndexOfCurrentRow() != -1) {
-            code.setVisible(false);
+            //code.setVisible(false);
             currentRow = codeGuessRows.get(gameState.getIndexOfCurrentRow());
             if(currentTurn.equals(Role.Codemaker)){
                 currentRow.setActiveHintCircles(true);
@@ -274,9 +272,10 @@ public class MastermindController {
             }
 
             setPlayerIndicator();
-        } else {
-            code.setVisible(true);
         }
+        /*else {
+            code.setVisible(true);
+        }*/
     }
 
     public void generateDocumentation() {
@@ -297,7 +296,7 @@ public class MastermindController {
                     if (code.checkForDuplicates(selectedColor)) {
                         codeCircle.setFill(selectedColor);
 
-                        sendGameStateIfClient();
+                        sendGameState();
 
                     } else {
                         DialogUtils.showWarning("Duplicates", "Color duplicates", "The code must have different colors!");
@@ -307,10 +306,12 @@ public class MastermindController {
         }
     }
 
-    private void sendGameStateIfClient(){
+    private void sendGameState(){
+        var gameState = createGameState();
         if(MastermindApplication.loggedInNetworkRole.name().equals(NetworkRole.CLIENT.name())){
-            var gameStateForServer = createGameState();
-            NetworkingUtils.sendGameStateToServer(gameStateForServer);
+            NetworkingUtils.sendGameStateToServer(gameState);
+        }else {
+            NetworkingUtils.sendGameStateToClient(gameState);
         }
     }
 
@@ -327,7 +328,7 @@ public class MastermindController {
                 currentTurn,
                 lbDescriptionOfCurrentTurn.getText(),
                 apStartGame.isVisible(),
-                btnSetCode.isVisible(),
+                codeHBox.isVisible(),
                 btnNextTurn.isVisible(),
                 colorCircles.get(0).isDisable(),
                 hintColorCircles.get(0).isDisable());
@@ -429,7 +430,7 @@ public class MastermindController {
         boolean isRightCode = true;
 
         for(int i = 0; i < code.getCodeCircles().size(); i++){
-            if(code.getCodeCircles().get(i).getFill() != currentRow.getGuessCircles().get(i).getFill()){
+            if(code.getCodeCircles().get(i).getFill().equals(currentRow.getGuessCircles().get(i).getFill())){
                 isRightCode = false;
                 break;
             }
@@ -501,7 +502,7 @@ public class MastermindController {
         currentTurn = Role.Codemaker;
         setPlayerIndicator();
         updateDescriptionOfCurrentTurn(CODEMAKER_SETS_CODE);
-        sendGameStateIfClient();
+        sendGameState();
     }
 
     private void switchPlayerRoles() {
@@ -510,6 +511,9 @@ public class MastermindController {
 
         lbPlayer1Role.setText(player1.getRole().name());
         lbPlayer2Role.setText((player2.getRole().name()));
+
+        codeHBox.setVisible(!codeHBox.isVisible());
+        btnSetCode.setVisible(!btnSetCode.isVisible());
     }
 
     private void resetGuessRows() {

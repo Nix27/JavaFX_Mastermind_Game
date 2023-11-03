@@ -12,11 +12,24 @@ public class NetworkingUtils {
     private NetworkingUtils() {}
 
     public static void sendGameStateToServer(GameState gameState){
-        sendRequest(gameState);
+        sendRequestToServer(gameState);
     }
 
-    public static void sendRequest(GameState gameState){
-        try(Socket clientSocket = new Socket(NetworkConfiguration.HOST, NetworkConfiguration.PORT)){
+    public static void sendGameStateToClient(GameState gameState){
+        sendRequestToClient(gameState);
+    }
+
+    public static void sendRequestToServer(GameState gameState){
+        try(Socket clientSocket = new Socket(NetworkConfiguration.HOST, NetworkConfiguration.SERVER_PORT)){
+            System.err.println("Client is connecting to: " + clientSocket.getInetAddress());
+            sendSerializableRequest(clientSocket, gameState);
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void sendRequestToClient(GameState gameState){
+        try(Socket clientSocket = new Socket(NetworkConfiguration.HOST, NetworkConfiguration.CLIENT_PORT)){
             System.err.println("Client is connecting to: " + clientSocket.getInetAddress());
             sendSerializableRequest(clientSocket, gameState);
         } catch (IOException | ClassNotFoundException e) {

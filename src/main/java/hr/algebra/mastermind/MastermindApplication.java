@@ -50,18 +50,37 @@ public class MastermindApplication extends Application {
             if(loggedInNetworkRole.name().equals(NetworkRole.SERVER.name())){
                 startServer();
             }else {
-                //startClient();
+                startClient();
             }
         }
 
     }
 
     private static void startServer(){
-        acceptRequests();
+        acceptRequestsOnServer();
     }
 
-    private static void acceptRequests(){
-        try(ServerSocket serverSocket = new ServerSocket(NetworkConfiguration.PORT)){
+    private static void acceptRequestsOnServer(){
+        try(ServerSocket serverSocket = new ServerSocket(NetworkConfiguration.SERVER_PORT)){
+            System.err.println("Server listening on port:" + serverSocket.getLocalPort());
+
+            while (true){
+                Socket clientSocket = serverSocket.accept();
+                System.err.println("Client connected from port: " + clientSocket.getPort());
+
+                Platform.runLater(() -> processSerializableClient(clientSocket));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void startClient(){
+        acceptRequestsOnClient();
+    }
+
+    private static void acceptRequestsOnClient(){
+        try(ServerSocket serverSocket = new ServerSocket(NetworkConfiguration.CLIENT_PORT)){
             System.err.println("Server listening on port:" + serverSocket.getLocalPort());
 
             while (true){
