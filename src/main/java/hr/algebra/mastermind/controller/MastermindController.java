@@ -50,6 +50,7 @@ public class MastermindController {
     public Circle player1Indicator;
     public Circle player2Indicator;
     public Label lbDescriptionOfCurrentTurn;
+    public Label lbResult;
 
     private final Paint defaultCircleColor = Color.web("#848484");
     private Paint selectedColor;
@@ -84,15 +85,7 @@ public class MastermindController {
         player1 = new Player(Role.Codemaker);
         player2 = new Player(Role.Codebreaker);
 
-        if(MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SERVER)){
-            boolean isVisible = player1.getRole().equals(Role.Codemaker);
-            codeHBox.setVisible(isVisible);
-            btnSetCode.setVisible(isVisible);
-        }else {
-            boolean isVisible = player2.getRole().equals(Role.Codemaker);
-            codeHBox.setVisible(isVisible);
-            btnSetCode.setVisible(isVisible);
-        }
+        setCodeVisibility();
 
         showPlayerInfo();
         player1Indicator.setVisible(false);
@@ -132,6 +125,7 @@ public class MastermindController {
         updateDescriptionOfCurrentTurn(CODEBREAKER_GUESS);
 
         sendGameState();
+        enableGuessRows(false);
     }
 
     public void nextTurn() {
@@ -152,7 +146,6 @@ public class MastermindController {
             }
 
             if (checkForRightCode()) {
-                code.setVisible(true);
                 DialogUtils.showInfo("Code cracked", "Code is successfully cracked!");
                 nextRound();
                 return;
@@ -169,6 +162,7 @@ public class MastermindController {
         }
 
         sendGameState();
+        enableGuessRows(false);
     }
 
     public void newGame() {
@@ -192,6 +186,7 @@ public class MastermindController {
         btnStartGame.setVisible(true);
         spNumberOfRounds.setValueFactory(spinnerValueFactory);
         lbDescriptionOfCurrentTurn.setText("");
+        lbResult.setText("");
         apStartGame.setVisible(true);
 
         sendGameState();
@@ -246,8 +241,12 @@ public class MastermindController {
         enableCircles(!gameState.getIsColorsDisabled(), colorCircles);
         enableCircles(!gameState.getIsHintColorsDisabled(), hintColorCircles);
 
-        numberOfRounds = gameState.getNumberOfRounds();
+        if(currentTurn != null && !currentTurn.equals(gameState.getCurrentTurn())){
+            enableGuessRows(true);
+        }
         currentTurn = gameState.getCurrentTurn();
+
+        numberOfRounds = gameState.getNumberOfRounds();
 
         apStartGame.setVisible(gameState.getIsStartGameVisible());
         player1 = gameState.getPlayer1();
@@ -258,6 +257,11 @@ public class MastermindController {
             enableCircles(true, code.getCodeCircles());
             lbDescriptionOfCurrentTurn.setText(gameState.getDescriptionOfCurrentTurn());
             setPlayerIndicator();
+        }
+
+        if(!gameState.getResult().isBlank()){
+            lbResult.setText(gameState.getResult());
+            btnNextTurn.setDisable(true);
         }
 
         btnNextTurn.setVisible(gameState.getIsBtnNextTurnVisible());
@@ -274,7 +278,7 @@ public class MastermindController {
             setPlayerIndicator();
         }
         /*else {
-            code.setVisible(true);
+            codeHBox.setVisible(gameState.getIsCodeVisible());
         }*/
     }
 
@@ -331,7 +335,8 @@ public class MastermindController {
                 codeHBox.isVisible(),
                 btnNextTurn.isVisible(),
                 colorCircles.get(0).isDisable(),
-                hintColorCircles.get(0).isDisable());
+                hintColorCircles.get(0).isDisable(),
+                lbResult.getText());
     }
 
     private void showPlayerInfo() {
@@ -430,7 +435,7 @@ public class MastermindController {
         boolean isRightCode = true;
 
         for(int i = 0; i < code.getCodeCircles().size(); i++){
-            if(code.getCodeCircles().get(i).getFill().equals(currentRow.getGuessCircles().get(i).getFill())){
+            if(!code.getCodeCircles().get(i).getFill().equals(currentRow.getGuessCircles().get(i).getFill())){
                 isRightCode = false;
                 break;
             }
@@ -475,11 +480,13 @@ public class MastermindController {
     private boolean checkIfLastRound() {
         if (numberOfRounds < 1) {
             if (player1.getNumberOfPoints() == player2.getNumberOfPoints()) {
-                DialogUtils.showInfo("Draw", "It's draw!");
+                lbResult.setText("It's draw!");
             } else {
-                DialogUtils.showInfo("Winner", "Winner is " + (player1.getNumberOfPoints() > player2.getNumberOfPoints() ? "Player 1!" : "Player 2!"));
+                lbResult.setText("Winner is " + (player1.getNumberOfPoints() > player2.getNumberOfPoints() ? "Player 1!" : "Player 2!"));
             }
 
+            btnNextTurn.setDisable(true);
+            sendGameState();
             return true;
         }
 
@@ -513,12 +520,25 @@ public class MastermindController {
         lbPlayer2Role.setText((player2.getRole().name()));
 
         codeHBox.setVisible(!codeHBox.isVisible());
-        btnSetCode.setVisible(!btnSetCode.isVisible());
     }
 
     private void resetGuessRows() {
         for (var guessRow : codeGuessRows) {
             guessRow.resetRow();
         }
+    }
+
+    private void setCodeVisibility(){
+        if(MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SERVER)){
+            boolean isVisible = player1.getRole().equals(Role.Codemaker);
+            codeHBox.setVisible(isVisible);
+        }else {
+            boolean isVisible = player2.getRole().equals(Role.Codemaker);
+            codeHBox.setVisible(isVisible);
+        }
+    }
+
+    private void enableGuessRows(boolean enable){
+        guessRowsVBox.setDisable(!enable);
     }
 }

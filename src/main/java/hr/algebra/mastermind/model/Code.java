@@ -28,14 +28,9 @@ public final class Code {
         return new ArrayList<>(codeCircles);
     }
 
-    public void setVisible(boolean isVisible){
-        codeCircles.forEach(c -> c.setVisible(isVisible));
-    }
-
     public void resetCode(){
         for(var codeCircle : codeCircles){
             codeCircle.setFill(defaultCircleColor);
-            //codeCircle.setVisible(true);
         }
     }
 
@@ -47,12 +42,5 @@ public final class Code {
         }
 
         return true;
-    }
-
-    private List<String> getCodeColors(){
-        return codeCircles
-                .stream()
-                .map(c -> c.getFill().toString())
-                .collect(Collectors.toList());
     }
 }
