@@ -93,6 +93,12 @@ public class MastermindController {
 
         spNumberOfRounds.setValueFactory(spinnerValueFactory);
         btnNextTurn.setVisible(false);
+
+        if(MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SERVER)){
+            apStartGame.setVisible(true);
+        }else {
+            apStartGame.setVisible(false);
+        }
     }
 
     public void startGame() {
@@ -122,6 +128,8 @@ public class MastermindController {
 
         btnSetCode.setVisible(false);
         btnNextTurn.setVisible(true);
+        btnNextTurn.setDisable(true);
+
         updateDescriptionOfCurrentTurn(CODEBREAKER_GUESS);
 
         sendGameState();
@@ -170,8 +178,8 @@ public class MastermindController {
         player1.reset();
         player2.reset();
         showPlayerInfo();
-        player1Indicator.setVisible(false);
-        player2Indicator.setVisible(false);
+        currentTurn = null;
+        setPlayerIndicator();
         code.resetCode();
         enableCircles(false, code.getCodeCircles());
         resetGuessRows();
@@ -188,7 +196,8 @@ public class MastermindController {
         spNumberOfRounds.setValueFactory(spinnerValueFactory);
         lbDescriptionOfCurrentTurn.setText("");
         lbResult.setText("");
-        apStartGame.setVisible(true);
+
+        showStartGameWindow(true);
 
         sendGameState();
     }
@@ -220,8 +229,6 @@ public class MastermindController {
             currentRow.setActiveHintCircles(false);
         }
 
-        btnNextTurn.setDisable(false);
-
         for(var codeCircle: code.getCodeCircles()){
             int indexOfColor = code.getCodeCircles().indexOf(codeCircle);
             codeCircle.setFill(Color.web(gameState.getCodeColors().get(indexOfColor)));
@@ -251,16 +258,21 @@ public class MastermindController {
 
         if(currentTurn != null && !currentTurn.equals(gameState.getCurrentTurn())){
             enableGuessRows(true);
+            btnNextTurn.setDisable(false);
         }
         currentTurn = gameState.getCurrentTurn();
 
         numberOfRounds = gameState.getNumberOfRounds();
 
-        apStartGame.setVisible(gameState.getIsStartGameVisible());
-
         player1 = gameState.getPlayer1();
         player2 = gameState.getPlayer2();
         showPlayerInfo();
+
+        if(currentTurn == null){
+            setPlayerIndicator();
+            resetGuessRows();
+            showStartGameWindow(true);
+        }
 
         if (!gameState.getDescriptionOfCurrentTurn().isBlank()) {
             enableCircles(true, code.getCodeCircles());
@@ -337,7 +349,6 @@ public class MastermindController {
                 currentTurn,
                 lbDescriptionOfCurrentTurn.getText(),
                 apStartGame.isVisible(),
-                codeHBox.isVisible(),
                 btnNextTurn.isVisible(),
                 colorCircles.get(0).isDisable(),
                 hintColorCircles.get(0).isDisable(),
@@ -358,10 +369,7 @@ public class MastermindController {
                     if (selectedHintColor != defaultCircleColor){
                         hintCircle.setFill(selectedHintColor);
 
-                        if(MastermindApplication.loggedInNetworkRole.name().equals(NetworkRole.CLIENT.name())){
-                            var gameStateForServer = createGameState();
-                            NetworkingUtils.sendGameStateToServer(gameStateForServer);
-                        }
+                        sendGameState();
                     }
                 });
             }
@@ -376,10 +384,7 @@ public class MastermindController {
                         if (row.checkForDuplicatesInGuess(selectedColor)) {
                             guessCircle.setFill(selectedColor);
 
-                            if(MastermindApplication.loggedInNetworkRole.name().equals(NetworkRole.CLIENT.name())){
-                                var gameStateForServer = createGameState();
-                                NetworkingUtils.sendGameStateToServer(gameStateForServer);
-                            }
+                            sendGameState();
                         } else {
                             DialogUtils.showWarning("Duplicates", "Color duplicates", "The code must have different colors!");
                         }
@@ -450,6 +455,12 @@ public class MastermindController {
     }
 
     private void setPlayerIndicator() {
+        if(currentTurn == null){
+            player1Indicator.setVisible(false);
+            player2Indicator.setVisible(false);
+            return;
+        }
+
         if (player1.getRole() == currentTurn) {
             player1Indicator.setVisible(true);
             player2Indicator.setVisible(false);
@@ -545,5 +556,11 @@ public class MastermindController {
 
     private void enableGuessRows(boolean enable){
         guessRowsVBox.setDisable(!enable);
+    }
+
+    private void showStartGameWindow(boolean isShowed) {
+        if (MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SERVER)) {
+            apStartGame.setVisible(isShowed);
+        }
     }
 }
