@@ -163,6 +163,7 @@ public class MastermindController {
 
         sendGameState();
         enableGuessRows(false);
+        btnNextTurn.setDisable(true);
     }
 
     public void newGame() {
@@ -205,11 +206,6 @@ public class MastermindController {
 
     public void loadGame() {
         try {
-            if (currentRow != null) {
-                currentRow.setActiveGuessCircles(false);
-                currentRow.setActiveHintCircles(false);
-            }
-
             GameState loadedGameState = FileUtils.read(GAME_STATE_FILE);
             loadGameState(loadedGameState);
         } catch (IOException | ClassNotFoundException e) {
@@ -219,19 +215,31 @@ public class MastermindController {
     }
 
     public void loadGameState(GameState gameState){
+        if (currentRow != null) {
+            currentRow.setActiveGuessCircles(false);
+            currentRow.setActiveHintCircles(false);
+        }
+
+        btnNextTurn.setDisable(false);
+
         for(var codeCircle: code.getCodeCircles()){
             int indexOfColor = code.getCodeCircles().indexOf(codeCircle);
             codeCircle.setFill(Color.web(gameState.getCodeColors().get(indexOfColor)));
         }
 
-        for(var codeGuessRow : codeGuessRows){
-            int indexOfRow = codeGuessRows.indexOf(codeGuessRow);
-            List<String> colorsOfGuessCircles = gameState.getColorsOfGuessCircles().get(indexOfRow);
-            List<String> colorsOfHintCircles = gameState.getColorsOfHintCircles().get(indexOfRow);
+        if(!player1.getRole().equals(gameState.getPlayer1().getRole())){
+            codeHBox.setVisible(!codeHBox.isVisible());
+            resetGuessRows();
+        } else {
+            for(var codeGuessRow : codeGuessRows){
+                int indexOfRow = codeGuessRows.indexOf(codeGuessRow);
+                List<String> colorsOfGuessCircles = gameState.getColorsOfGuessCircles().get(indexOfRow);
+                List<String> colorsOfHintCircles = gameState.getColorsOfHintCircles().get(indexOfRow);
 
-            for(int i = 0; i < colorsOfGuessCircles.size(); i++){
-                codeGuessRow.getGuessCircles().get(i).setFill(Color.web(colorsOfGuessCircles.get(i)));
-                codeGuessRow.getHintCircles().get(i).setFill(Color.web(colorsOfHintCircles.get(i)));
+                for(int i = 0; i < colorsOfGuessCircles.size(); i++){
+                    codeGuessRow.getGuessCircles().get(i).setFill(Color.web(colorsOfGuessCircles.get(i)));
+                    codeGuessRow.getHintCircles().get(i).setFill(Color.web(colorsOfHintCircles.get(i)));
+                }
             }
         }
 
@@ -249,6 +257,7 @@ public class MastermindController {
         numberOfRounds = gameState.getNumberOfRounds();
 
         apStartGame.setVisible(gameState.getIsStartGameVisible());
+
         player1 = gameState.getPlayer1();
         player2 = gameState.getPlayer2();
         showPlayerInfo();
@@ -267,7 +276,6 @@ public class MastermindController {
         btnNextTurn.setVisible(gameState.getIsBtnNextTurnVisible());
 
         if (gameState.getIndexOfCurrentRow() != -1) {
-            //code.setVisible(false);
             currentRow = codeGuessRows.get(gameState.getIndexOfCurrentRow());
             if(currentTurn.equals(Role.Codemaker)){
                 currentRow.setActiveHintCircles(true);
@@ -277,9 +285,6 @@ public class MastermindController {
 
             setPlayerIndicator();
         }
-        /*else {
-            codeHBox.setVisible(gameState.getIsCodeVisible());
-        }*/
     }
 
     public void generateDocumentation() {
