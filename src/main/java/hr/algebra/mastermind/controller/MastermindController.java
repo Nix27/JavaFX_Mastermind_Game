@@ -234,7 +234,17 @@ public class MastermindController {
             codeCircle.setFill(Color.web(gameState.getCodeColors().get(indexOfColor)));
         }
 
+        if(currentTurn != null && !currentTurn.equals(gameState.getCurrentTurn())){
+            enableGuessRows(true);
+            btnNextTurn.setDisable(false);
+        }
+        currentTurn = gameState.getCurrentTurn();
+
         if(!player1.getRole().equals(gameState.getPlayer1().getRole())){
+            if(currentTurn != null){
+                DialogUtils.showInfo("Code cracked", "Code is successfully cracked!");
+            }
+
             codeHBox.setVisible(!codeHBox.isVisible());
             resetGuessRows();
         } else {
@@ -255,12 +265,6 @@ public class MastermindController {
 
         enableCircles(!gameState.getIsColorsDisabled(), colorCircles);
         enableCircles(!gameState.getIsHintColorsDisabled(), hintColorCircles);
-
-        if(currentTurn != null && !currentTurn.equals(gameState.getCurrentTurn())){
-            enableGuessRows(true);
-            btnNextTurn.setDisable(false);
-        }
-        currentTurn = gameState.getCurrentTurn();
 
         numberOfRounds = gameState.getNumberOfRounds();
 
