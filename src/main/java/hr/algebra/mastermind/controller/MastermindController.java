@@ -181,6 +181,7 @@ public class MastermindController {
         currentTurn = null;
         setPlayerIndicator();
         code.resetCode();
+        setCodeVisibility();
         enableCircles(false, code.getCodeCircles());
         resetGuessRows();
 
@@ -275,6 +276,8 @@ public class MastermindController {
         if(currentTurn == null){
             setPlayerIndicator();
             resetGuessRows();
+            lbResult.setText("");
+            lbDescriptionOfCurrentTurn.setText("");
             showStartGameWindow(true);
         }
 
@@ -352,7 +355,6 @@ public class MastermindController {
                 player2,
                 currentTurn,
                 lbDescriptionOfCurrentTurn.getText(),
-                apStartGame.isVisible(),
                 btnNextTurn.isVisible(),
                 colorCircles.get(0).isDisable(),
                 hintColorCircles.get(0).isDisable(),
