@@ -1,20 +1,20 @@
 package hr.algebra.mastermind.controller;
 
 import hr.algebra.mastermind.MastermindApplication;
+import hr.algebra.mastermind.chat.RemoteChat;
+import hr.algebra.mastermind.chat.RemoteChatService;
 import hr.algebra.mastermind.enums.NetworkRole;
 import hr.algebra.mastermind.enums.Role;
 import hr.algebra.mastermind.model.Code;
 import hr.algebra.mastermind.model.CodeGuessRow;
 import hr.algebra.mastermind.model.GameState;
 import hr.algebra.mastermind.model.Player;
+import hr.algebra.mastermind.networking.NetworkConfiguration;
 import hr.algebra.mastermind.utils.DialogUtils;
 import hr.algebra.mastermind.utils.DocumentationUtils;
 import hr.algebra.mastermind.utils.FileUtils;
 import hr.algebra.mastermind.utils.NetworkingUtils;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Spinner;
-import javafx.scene.control.SpinnerValueFactory;
+import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
@@ -24,6 +24,11 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 
 import java.io.IOException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,6 +56,8 @@ public class MastermindController {
     public Circle player2Indicator;
     public Label lbDescriptionOfCurrentTurn;
     public Label lbResult;
+    public TextField tfChatMessage;
+    public  TextArea taChatMessages;
 
     private final Paint defaultCircleColor = Color.web("#848484");
     private Paint selectedColor;
@@ -67,6 +74,7 @@ public class MastermindController {
     private Player player1;
     private Player player2;
     private Role currentTurn;
+    private RemoteChatService remoteChatService;
 
     private final SpinnerValueFactory<Integer> spinnerValueFactory =
             new SpinnerValueFactory.IntegerSpinnerValueFactory(2, 100, 2, 2);
@@ -96,8 +104,11 @@ public class MastermindController {
 
         if(MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SERVER)){
             apStartGame.setVisible(true);
+            startRmiChatServer();
+
         }else {
             apStartGame.setVisible(false);
+            startRmiChatClient();
         }
     }
 
@@ -567,6 +578,42 @@ public class MastermindController {
     private void showStartGameWindow(boolean isShowed) {
         if (MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SERVER)) {
             apStartGame.setVisible(isShowed);
+        }
+    }
+
+    private void startRmiChatServer(){
+        try {
+            Registry registry = LocateRegistry.createRegistry(NetworkConfiguration.RMI_PORT);
+            remoteChatService = new RemoteChat();
+            RemoteChatService skeleton = (RemoteChatService) UnicastRemoteObject.exportObject(remoteChatService, NetworkConfiguration.RANDOM_PORT_HINT);
+            registry.rebind(RemoteChatService.REMOTE_CHAT_OBJECT_NAME, skeleton);
+            System.err.println("Object registered in RMI registry");
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void startRmiChatClient(){
+        try {
+            Registry registry = LocateRegistry.getRegistry(NetworkConfiguration.HOST, NetworkConfiguration.RMI_PORT);
+            remoteChatService = (RemoteChatService) registry.lookup(RemoteChatService.REMOTE_CHAT_OBJECT_NAME);
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendChatMessage(){
+        String message = tfChatMessage.getText();
+
+        try {
+            remoteChatService.sendMessage(MastermindApplication.loggedInNetworkRole.name() + ": " + message);
+            List<String> allChatMessages = remoteChatService.getAllChatMessages();
+
+            for(var msg : allChatMessages){
+                taChatMessages.appendText(msg + System.lineSeparator());
+            }
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
         }
     }
 }
