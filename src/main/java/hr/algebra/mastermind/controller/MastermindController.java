@@ -106,11 +106,11 @@ public class MastermindController {
 
         if(MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SERVER)){
             apStartGame.setVisible(true);
-            startRmiChatServer();
+            RmiUtils.startRmiChatServer();
 
         }else {
             apStartGame.setVisible(false);
-            startRmiChatClient();
+            RmiUtils.startRmiChatClient();
         }
 
         btnSend.setDisable(true);
@@ -124,7 +124,7 @@ public class MastermindController {
             btnSend.setDisable(newValue.isBlank());
         });
 
-        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1), e -> refreshChatMessages()));
+        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1), e -> ChatUtils.refreshChatMessages(taChatMessages)));
         timeline.setCycleCount(Animation.INDEFINITE);
         timeline.playFromStart();
     }
@@ -595,41 +595,6 @@ public class MastermindController {
     private void showStartGameWindow(boolean isShowed) {
         if (MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SERVER)) {
             apStartGame.setVisible(isShowed);
-        }
-    }
-
-    private void startRmiChatServer(){
-        try {
-            Registry registry = LocateRegistry.createRegistry(NetworkConfiguration.RMI_PORT);
-            remoteChatService = new RemoteChat();
-            RemoteChatService skeleton = (RemoteChatService) UnicastRemoteObject.exportObject(remoteChatService, NetworkConfiguration.RANDOM_PORT_HINT);
-            registry.rebind(RemoteChatService.REMOTE_CHAT_OBJECT_NAME, skeleton);
-            System.err.println("Object registered in RMI registry");
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void startRmiChatClient(){
-        try {
-            Registry registry = LocateRegistry.getRegistry(NetworkConfiguration.HOST, NetworkConfiguration.RMI_PORT);
-            remoteChatService = (RemoteChatService) registry.lookup(RemoteChatService.REMOTE_CHAT_OBJECT_NAME);
-        } catch (RemoteException | NotBoundException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void refreshChatMessages(){
-        taChatMessages.clear();
-
-        try {
-            List<String> allChatMessages = remoteChatService.getAllChatMessages();
-
-            for(var msg : allChatMessages){
-                taChatMessages.appendText(msg + System.lineSeparator());
-            }
-        } catch (RemoteException e) {
-            throw new RuntimeException(e);
         }
     }
 
