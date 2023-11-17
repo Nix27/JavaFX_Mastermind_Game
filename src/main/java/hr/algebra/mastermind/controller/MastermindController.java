@@ -10,10 +10,10 @@ import hr.algebra.mastermind.model.CodeGuessRow;
 import hr.algebra.mastermind.model.GameState;
 import hr.algebra.mastermind.model.Player;
 import hr.algebra.mastermind.networking.NetworkConfiguration;
-import hr.algebra.mastermind.utils.DialogUtils;
-import hr.algebra.mastermind.utils.DocumentationUtils;
-import hr.algebra.mastermind.utils.FileUtils;
-import hr.algebra.mastermind.utils.NetworkingUtils;
+import hr.algebra.mastermind.utils.*;
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
@@ -22,6 +22,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
+import javafx.util.Duration;
 
 import java.io.IOException;
 import java.rmi.NotBoundException;
@@ -58,6 +59,7 @@ public class MastermindController {
     public Label lbResult;
     public TextField tfChatMessage;
     public  TextArea taChatMessages;
+    public Button btnSend;
 
     private final Paint defaultCircleColor = Color.web("#848484");
     private Paint selectedColor;
@@ -74,7 +76,7 @@ public class MastermindController {
     private Player player1;
     private Player player2;
     private Role currentTurn;
-    private RemoteChatService remoteChatService;
+    public static RemoteChatService remoteChatService;
 
     private final SpinnerValueFactory<Integer> spinnerValueFactory =
             new SpinnerValueFactory.IntegerSpinnerValueFactory(2, 100, 2, 2);
@@ -110,6 +112,21 @@ public class MastermindController {
             apStartGame.setVisible(false);
             startRmiChatClient();
         }
+
+        btnSend.setDisable(true);
+        tfChatMessage.setOnAction(e -> {
+            if(!tfChatMessage.getText().isBlank()){
+                ChatUtils.sendChatMessage(tfChatMessage.getText());
+                tfChatMessage.clear();
+            }
+        });
+        tfChatMessage.textProperty().addListener((observable, oldValue, newValue) -> {
+            btnSend.setDisable(newValue.isBlank());
+        });
+
+        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1), e -> refreshChatMessages()));
+        timeline.setCycleCount(Animation.INDEFINITE);
+        timeline.playFromStart();
     }
 
     public void startGame() {
@@ -602,11 +619,10 @@ public class MastermindController {
         }
     }
 
-    public void sendChatMessage(){
-        String message = tfChatMessage.getText();
+    private void refreshChatMessages(){
+        taChatMessages.clear();
 
         try {
-            remoteChatService.sendMessage(MastermindApplication.loggedInNetworkRole.name() + ": " + message);
             List<String> allChatMessages = remoteChatService.getAllChatMessages();
 
             for(var msg : allChatMessages){
@@ -615,5 +631,10 @@ public class MastermindController {
         } catch (RemoteException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void sendChatMessage(){
+        ChatUtils.sendChatMessage(tfChatMessage.getText());
+        tfChatMessage.clear();
     }
 }

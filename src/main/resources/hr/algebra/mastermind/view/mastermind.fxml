@@ -296,7 +296,7 @@
          </font>
       </Label>
       <TextField fx:id="tfChatMessage" layoutX="17.0" layoutY="659.0" prefHeight="26.0" prefWidth="737.0" />
-      <TextArea fx:id="taChatMessages" layoutX="656.0" layoutY="78.0" prefHeight="561.0" prefWidth="200.0" />
-      <Button layoutX="762.0" layoutY="659.0" mnemonicParsing="false" onAction="#sendChatMessage" prefHeight="26.0" prefWidth="93.0" text="Send" />
+      <TextArea fx:id="taChatMessages" editable="false" layoutX="656.0" layoutY="78.0" prefHeight="561.0" prefWidth="200.0" />
+      <Button fx:id="btnSend" layoutX="762.0" layoutY="659.0" mnemonicParsing="false" onAction="#sendChatMessage" prefHeight="26.0" prefWidth="93.0" text="Send" />
    </children>
 </AnchorPane>

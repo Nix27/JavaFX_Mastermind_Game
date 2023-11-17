@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RemoteChat implements RemoteChatService {
-    private List<String> chatMessages;
+    private final List<String> chatMessages;
 
     public RemoteChat(){
         chatMessages = new ArrayList<>();
