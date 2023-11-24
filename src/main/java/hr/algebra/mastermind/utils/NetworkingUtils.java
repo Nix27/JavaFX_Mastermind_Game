@@ -1,7 +1,7 @@
 package hr.algebra.mastermind.utils;
 
+import hr.algebra.mastermind.enums.ConfigurationKey;
 import hr.algebra.mastermind.model.GameState;
-import hr.algebra.mastermind.networking.NetworkConfiguration;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -20,7 +20,10 @@ public class NetworkingUtils {
     }
 
     public static void sendRequestToServer(GameState gameState){
-        try(Socket clientSocket = new Socket(NetworkConfiguration.HOST, NetworkConfiguration.SERVER_PORT)){
+        String host = ConfigurationReader.getStringValueOfKey(ConfigurationKey.HOST);
+        Integer serverPort = ConfigurationReader.getIntValueOfKey(ConfigurationKey.SERVER_PORT);
+
+        try(Socket clientSocket = new Socket(host, serverPort)){
             System.err.println("Client is connecting to: " + clientSocket.getInetAddress());
             sendSerializableRequest(clientSocket, gameState);
         } catch (IOException | ClassNotFoundException e) {
@@ -29,7 +32,10 @@ public class NetworkingUtils {
     }
 
     public static void sendRequestToClient(GameState gameState){
-        try(Socket clientSocket = new Socket(NetworkConfiguration.HOST, NetworkConfiguration.CLIENT_PORT)){
+        String host = ConfigurationReader.getStringValueOfKey(ConfigurationKey.HOST);
+        Integer clientPort = ConfigurationReader.getIntValueOfKey(ConfigurationKey.CLIENT_PORT);
+
+        try(Socket clientSocket = new Socket(host, clientPort)){
             System.err.println("Client is connecting to: " + clientSocket.getInetAddress());
             sendSerializableRequest(clientSocket, gameState);
         } catch (IOException | ClassNotFoundException e) {

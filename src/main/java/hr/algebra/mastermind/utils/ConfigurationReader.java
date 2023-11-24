@@ -20,7 +20,7 @@ public class ConfigurationReader {
     static {
         environment = new Hashtable<>();
         environment.put(Context.INITIAL_CONTEXT_FACTORY,"com.sun.jndi.fscontext.RefFSContextFactory");
-        environment.put(Context.PROVIDER_URL,"file:C:\\Users\\Nix\\Documents\\Java 2\\network_configuration");
+        environment.put(Context.PROVIDER_URL,"file:network_configuration");
     }
 
     public static String getStringValueOfKey(ConfigurationKey configurationKey){

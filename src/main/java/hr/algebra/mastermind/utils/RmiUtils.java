@@ -3,7 +3,7 @@ package hr.algebra.mastermind.utils;
 import hr.algebra.mastermind.chat.RemoteChat;
 import hr.algebra.mastermind.chat.RemoteChatService;
 import hr.algebra.mastermind.controller.MastermindController;
-import hr.algebra.mastermind.networking.NetworkConfiguration;
+import hr.algebra.mastermind.enums.ConfigurationKey;
 
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -16,9 +16,12 @@ public class RmiUtils {
 
     public static void startRmiChatServer(){
         try {
-            Registry registry = LocateRegistry.createRegistry(NetworkConfiguration.RMI_PORT);
+            int rmiPort = ConfigurationReader.getIntValueOfKey(ConfigurationKey.RMI_PORT);
+            int randomPortHint = ConfigurationReader.getIntValueOfKey(ConfigurationKey.RANDOM_PORT_HINT);
+
+            Registry registry = LocateRegistry.createRegistry(rmiPort);
             MastermindController.remoteChatService = new RemoteChat();
-            RemoteChatService skeleton = (RemoteChatService) UnicastRemoteObject.exportObject(MastermindController.remoteChatService, NetworkConfiguration.RANDOM_PORT_HINT);
+            RemoteChatService skeleton = (RemoteChatService) UnicastRemoteObject.exportObject(MastermindController.remoteChatService, randomPortHint);
             registry.rebind(RemoteChatService.REMOTE_CHAT_OBJECT_NAME, skeleton);
             System.err.println("Object registered in RMI registry");
         } catch (RemoteException e) {
@@ -28,7 +31,10 @@ public class RmiUtils {
 
     public static void startRmiChatClient(){
         try {
-            Registry registry = LocateRegistry.getRegistry(NetworkConfiguration.HOST, NetworkConfiguration.RMI_PORT);
+            int rmiPort = ConfigurationReader.getIntValueOfKey(ConfigurationKey.RMI_PORT);
+            String host = ConfigurationReader.getStringValueOfKey(ConfigurationKey.HOST);
+
+            Registry registry = LocateRegistry.getRegistry(host, rmiPort);
             MastermindController.remoteChatService = (RemoteChatService) registry.lookup(RemoteChatService.REMOTE_CHAT_OBJECT_NAME);
         } catch (RemoteException | NotBoundException e) {
             e.printStackTrace();

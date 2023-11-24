@@ -1,11 +1,10 @@
 package hr.algebra.mastermind;
 
-import hr.algebra.mastermind.chat.RemoteChat;
-import hr.algebra.mastermind.chat.RemoteChatService;
 import hr.algebra.mastermind.controller.MastermindController;
+import hr.algebra.mastermind.enums.ConfigurationKey;
 import hr.algebra.mastermind.enums.NetworkRole;
 import hr.algebra.mastermind.model.GameState;
-import hr.algebra.mastermind.networking.NetworkConfiguration;
+import hr.algebra.mastermind.utils.ConfigurationReader;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -17,11 +16,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
 
 public class MastermindApplication extends Application {
     public static NetworkRole loggedInNetworkRole;
@@ -68,7 +62,9 @@ public class MastermindApplication extends Application {
     }
 
     private static void acceptRequestsOnServer(){
-        try(ServerSocket serverSocket = new ServerSocket(NetworkConfiguration.SERVER_PORT)){
+        Integer serverPort = ConfigurationReader.getIntValueOfKey(ConfigurationKey.SERVER_PORT);
+
+        try(ServerSocket serverSocket = new ServerSocket(serverPort)){
             System.err.println("Server listening on port:" + serverSocket.getLocalPort());
 
             while (true){
@@ -87,7 +83,9 @@ public class MastermindApplication extends Application {
     }
 
     private static void acceptRequestsOnClient(){
-        try(ServerSocket serverSocket = new ServerSocket(NetworkConfiguration.CLIENT_PORT)){
+        Integer clientPort = ConfigurationReader.getIntValueOfKey(ConfigurationKey.CLIENT_PORT);
+
+        try(ServerSocket serverSocket = new ServerSocket(clientPort)){
             System.err.println("Server listening on port:" + serverSocket.getLocalPort());
 
             while (true){

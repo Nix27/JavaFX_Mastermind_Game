@@ -1,7 +1,6 @@
 package hr.algebra.mastermind.controller;
 
 import hr.algebra.mastermind.MastermindApplication;
-import hr.algebra.mastermind.chat.RemoteChat;
 import hr.algebra.mastermind.chat.RemoteChatService;
 import hr.algebra.mastermind.enums.NetworkRole;
 import hr.algebra.mastermind.enums.Role;
@@ -9,7 +8,6 @@ import hr.algebra.mastermind.model.Code;
 import hr.algebra.mastermind.model.CodeGuessRow;
 import hr.algebra.mastermind.model.GameState;
 import hr.algebra.mastermind.model.Player;
-import hr.algebra.mastermind.networking.NetworkConfiguration;
 import hr.algebra.mastermind.utils.*;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
@@ -23,13 +21,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.util.Duration;
-
 import java.io.IOException;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
 
