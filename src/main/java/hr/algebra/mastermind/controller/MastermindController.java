@@ -61,7 +61,6 @@ public class MastermindController {
     private final List<Circle> hintColorCircles = new ArrayList<>();
     private Code code;
     private final List<CodeGuessRow> codeGuessRows = new ArrayList<>();
-
     private CodeGuessRow currentRow;
 
     private int numberOfRounds;
@@ -343,9 +342,7 @@ public class MastermindController {
                 if (selectedColor != defaultCircleColor) {
                     if (code.checkForDuplicates(selectedColor)) {
                         codeCircle.setFill(selectedColor);
-
                         sendGameState();
-
                     } else {
                         DialogUtils.showWarning("Duplicates", "Color duplicates", "The code must have different colors!");
                     }
