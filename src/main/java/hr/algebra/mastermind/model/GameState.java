@@ -28,6 +28,8 @@ public final class GameState implements Serializable {
     private final boolean isColorsDisabled;
     private final boolean isHintColorsDisabled;
     private final String result;
+    private boolean isNextRound;
+    private boolean isCodeCorrect;
 
     public GameState(Paint selectedColor, Paint selectedHintColor, List<Circle> codeCircles, List<CodeGuessRow> codeGuessRows, int indexOfCurrentRow, int numberOfRounds, Player player1, Player player2, Role currentTurn, String descriptionOfCurrentTurn, boolean isBtnNextTurnVisible, boolean isColorsDisabled, boolean isHintColorsDisabled, String result) {
         this.selectedColor = selectedColor.toString();
@@ -42,6 +44,8 @@ public final class GameState implements Serializable {
         this.isColorsDisabled = isColorsDisabled;
         this.isHintColorsDisabled = isHintColorsDisabled;
         this.result = result;
+        isNextRound = false;
+        isCodeCorrect = false;
 
         codeColors = new ArrayList<>();
         colorsOfGuessCircles = new ArrayList<>();
@@ -115,5 +119,21 @@ public final class GameState implements Serializable {
 
     public String getResult() {
         return result;
+    }
+
+    public void setIsNextRound(boolean isNextRound) {
+        this.isNextRound = isNextRound;
+    }
+
+    public boolean isNextRound(){
+        return isNextRound;
+    }
+
+    public void setIsCodeCorrect(boolean isCodeCorrect) {
+        this.isCodeCorrect = isCodeCorrect;
+    }
+
+    public boolean isCodeCorrect(){
+        return isCodeCorrect;
     }
 }

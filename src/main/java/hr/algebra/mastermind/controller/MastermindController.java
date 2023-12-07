@@ -131,7 +131,7 @@ public class MastermindController {
         lbDescriptionOfCurrentTurn.setVisible(true);
         updateDescriptionOfCurrentTurn(CODEMAKER_SETS_CODE);
 
-        sendGameState();
+        sendGameState(createGameState());
     }
 
     public void startGuessing() {
@@ -151,8 +151,9 @@ public class MastermindController {
 
         updateDescriptionOfCurrentTurn(CODEBREAKER_GUESS);
 
-        sendGameState();
+        sendGameState(createGameState());
         enableGuessRows(false);
+        enableCircles(false, code.getCodeCircles());
     }
 
     public void nextTurn() {
@@ -173,8 +174,14 @@ public class MastermindController {
             }
 
             if (checkForRightCode()) {
-                DialogUtils.showInfo("Code cracked", "Code is successfully cracked!");
                 nextRound();
+                GameState gameState = createGameState();
+                gameState.setIsCodeCorrect(true);
+                if(numberOfRounds > 0){
+                    gameState.setIsNextRound(true);
+                }
+                sendGameState(gameState);
+                DialogUtils.showInfo("Code cracked", "Code is successfully cracked!");
                 return;
             }
 
@@ -188,7 +195,7 @@ public class MastermindController {
             updateDescriptionOfCurrentTurn(CODEMAKER_GIVES_HINT);
         }
 
-        sendGameState();
+        sendGameState(createGameState());
         enableGuessRows(false);
         btnNextTurn.setDisable(true);
     }
@@ -219,7 +226,7 @@ public class MastermindController {
 
         showStartGameWindow(true);
 
-        sendGameState();
+        sendGameState(createGameState());
     }
 
     public void saveGame() {
@@ -260,11 +267,11 @@ public class MastermindController {
         }
         currentTurn = gameState.getCurrentTurn();
 
-        if(!player1.getRole().equals(gameState.getPlayer1().getRole())){
-            if(currentTurn != null){
-                DialogUtils.showInfo("Code cracked", "Code is successfully cracked!");
-            }
+        if(gameState.isCodeCorrect()){
+            DialogUtils.showInfo("Code cracked", "Code is successfully cracked!");
+        }
 
+        if(gameState.isNextRound()){
             codeHBox.setVisible(!codeHBox.isVisible());
             resetGuessRows();
         } else {
@@ -286,11 +293,11 @@ public class MastermindController {
         enableCircles(!gameState.getIsColorsDisabled(), colorCircles);
         enableCircles(!gameState.getIsHintColorsDisabled(), hintColorCircles);
 
-        numberOfRounds = gameState.getNumberOfRounds();
-
         player1 = gameState.getPlayer1();
         player2 = gameState.getPlayer2();
         showPlayerInfo();
+
+        numberOfRounds = gameState.getNumberOfRounds();
 
         if(currentTurn == null){
             setPlayerIndicator();
@@ -301,7 +308,6 @@ public class MastermindController {
         }
 
         if (!gameState.getDescriptionOfCurrentTurn().isBlank()) {
-            enableCircles(true, code.getCodeCircles());
             lbDescriptionOfCurrentTurn.setText(gameState.getDescriptionOfCurrentTurn());
             setPlayerIndicator();
         }
@@ -342,7 +348,7 @@ public class MastermindController {
                 if (selectedColor != defaultCircleColor) {
                     if (code.checkForDuplicates(selectedColor)) {
                         codeCircle.setFill(selectedColor);
-                        sendGameState();
+                        sendGameState(createGameState());
                     } else {
                         DialogUtils.showWarning("Duplicates", "Color duplicates", "The code must have different colors!");
                     }
@@ -351,8 +357,7 @@ public class MastermindController {
         }
     }
 
-    private void sendGameState(){
-        var gameState = createGameState();
+    private void sendGameState(GameState gameState){
         if(MastermindApplication.loggedInNetworkRole.name().equals(NetworkRole.CLIENT.name())){
             NetworkingUtils.sendGameStateToServer(gameState);
         }else {
@@ -392,7 +397,7 @@ public class MastermindController {
                     if (selectedHintColor != defaultCircleColor){
                         hintCircle.setFill(selectedHintColor);
 
-                        sendGameState();
+                        sendGameState(createGameState());
                     }
                 });
             }
@@ -407,7 +412,7 @@ public class MastermindController {
                         if (row.checkForDuplicatesInGuess(selectedColor)) {
                             guessCircle.setFill(selectedColor);
 
-                            sendGameState();
+                            sendGameState(createGameState());
                         } else {
                             DialogUtils.showWarning("Duplicates", "Color duplicates", "The code must have different colors!");
                         }
@@ -508,6 +513,9 @@ public class MastermindController {
 
         if (currentRowIndex + 1 == NUM_OF_GUESS_ROWS) {
             nextRound();
+            GameState gameState = createGameState();
+            gameState.setIsNextRound(true);
+            sendGameState(gameState);
             return;
         }
 
@@ -525,7 +533,7 @@ public class MastermindController {
             }
 
             btnNextTurn.setDisable(true);
-            sendGameState();
+
             return true;
         }
 
@@ -548,7 +556,6 @@ public class MastermindController {
         currentTurn = Role.Codemaker;
         setPlayerIndicator();
         updateDescriptionOfCurrentTurn(CODEMAKER_SETS_CODE);
-        sendGameState();
     }
 
     private void switchPlayerRoles() {
