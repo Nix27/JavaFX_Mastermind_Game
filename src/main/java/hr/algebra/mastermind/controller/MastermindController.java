@@ -591,6 +591,9 @@ public class MastermindController {
     private void showStartGameWindow(boolean isShowed) {
         if (MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SERVER)) {
             apStartGame.setVisible(isShowed);
+            codeHBox.setVisible(true);
+        }else {
+            codeHBox.setVisible(false);
         }
     }
 
