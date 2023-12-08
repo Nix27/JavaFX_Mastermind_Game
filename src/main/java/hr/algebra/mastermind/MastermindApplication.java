@@ -50,7 +50,7 @@ public class MastermindApplication extends Application {
         if(loggedIn){
             if(loggedInNetworkRole.name().equals(NetworkRole.SERVER.name())){
                 startServer();
-            }else {
+            }else if(loggedInNetworkRole.name().equals(NetworkRole.CLIENT.name())) {
                 startClient();
             }
         }

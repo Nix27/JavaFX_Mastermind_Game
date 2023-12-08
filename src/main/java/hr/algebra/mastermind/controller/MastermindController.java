@@ -2,12 +2,12 @@ package hr.algebra.mastermind.controller;
 
 import hr.algebra.mastermind.MastermindApplication;
 import hr.algebra.mastermind.chat.RemoteChatService;
+import hr.algebra.mastermind.enums.MoveType;
 import hr.algebra.mastermind.enums.NetworkRole;
 import hr.algebra.mastermind.enums.Role;
-import hr.algebra.mastermind.model.Code;
-import hr.algebra.mastermind.model.CodeGuessRow;
-import hr.algebra.mastermind.model.GameState;
-import hr.algebra.mastermind.model.Player;
+import hr.algebra.mastermind.model.*;
+import hr.algebra.mastermind.thread.GetLastGameMoveThread;
+import hr.algebra.mastermind.thread.SaveNewGameMoveThread;
 import hr.algebra.mastermind.utils.*;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
@@ -52,6 +52,7 @@ public class MastermindController {
     public TextField tfChatMessage;
     public  TextArea taChatMessages;
     public Button btnSend;
+    public Label lbLastGameMove;
 
     private final Paint defaultCircleColor = Color.web("#848484");
     private Paint selectedColor;
@@ -98,10 +99,11 @@ public class MastermindController {
         if(MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SERVER)){
             apStartGame.setVisible(true);
             RmiUtils.startRmiChatServer();
-
-        }else {
+        }else if(MastermindApplication.loggedInNetworkRole.equals(NetworkRole.CLIENT)){
             apStartGame.setVisible(false);
             RmiUtils.startRmiChatClient();
+        }else {
+            apStartGame.setVisible(true);
         }
 
         btnSend.setDisable(true);
@@ -115,9 +117,15 @@ public class MastermindController {
             btnSend.setDisable(newValue.isBlank());
         });
 
-        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1), e -> ChatUtils.refreshChatMessages(taChatMessages)));
-        timeline.setCycleCount(Animation.INDEFINITE);
-        timeline.playFromStart();
+        if(!MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SINGLE_PLAYER)){
+            Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1), e -> ChatUtils.refreshChatMessages(taChatMessages)));
+            timeline.setCycleCount(Animation.INDEFINITE);
+            timeline.playFromStart();
+        }
+
+        GetLastGameMoveThread getLastGameMoveThread = new GetLastGameMoveThread(lbLastGameMove);
+        Thread starterThread = new Thread(getLastGameMoveThread);
+        starterThread.start();
     }
 
     public void startGame() {
@@ -147,12 +155,15 @@ public class MastermindController {
 
         btnSetCode.setVisible(false);
         btnNextTurn.setVisible(true);
-        btnNextTurn.setDisable(true);
 
         updateDescriptionOfCurrentTurn(CODEBREAKER_GUESS);
-
         sendGameState(createGameState());
-        enableGuessRows(false);
+
+        if(!MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SINGLE_PLAYER)){
+            enableGuessRows(false);
+            btnNextTurn.setDisable(true);
+        }
+
         enableCircles(false, code.getCodeCircles());
     }
 
@@ -196,8 +207,11 @@ public class MastermindController {
         }
 
         sendGameState(createGameState());
-        enableGuessRows(false);
-        btnNextTurn.setDisable(true);
+
+        if(!MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SINGLE_PLAYER)){
+            enableGuessRows(false);
+            btnNextTurn.setDisable(true);
+        }
     }
 
     public void newGame() {
@@ -225,7 +239,6 @@ public class MastermindController {
         lbResult.setText("");
 
         showStartGameWindow(true);
-
         sendGameState(createGameState());
     }
 
@@ -348,6 +361,11 @@ public class MastermindController {
                 if (selectedColor != defaultCircleColor) {
                     if (code.checkForDuplicates(selectedColor)) {
                         codeCircle.setFill(selectedColor);
+
+                        GameMove newGameMove = new GameMove(MoveType.CODE, selectedColor.toString());
+                        SaveNewGameMoveThread saveNewGameMoveThread = new SaveNewGameMoveThread(newGameMove);
+                        new Thread(saveNewGameMoveThread).start();
+
                         sendGameState(createGameState());
                     } else {
                         DialogUtils.showWarning("Duplicates", "Color duplicates", "The code must have different colors!");
@@ -360,7 +378,7 @@ public class MastermindController {
     private void sendGameState(GameState gameState){
         if(MastermindApplication.loggedInNetworkRole.name().equals(NetworkRole.CLIENT.name())){
             NetworkingUtils.sendGameStateToServer(gameState);
-        }else {
+        }else if(MastermindApplication.loggedInNetworkRole.name().equals(NetworkRole.SERVER.name())){
             NetworkingUtils.sendGameStateToClient(gameState);
         }
     }
@@ -397,6 +415,11 @@ public class MastermindController {
                     if (selectedHintColor != defaultCircleColor){
                         hintCircle.setFill(selectedHintColor);
 
+                        GameMove newGameMove = new GameMove(MoveType.HINT, selectedHintColor.toString());
+                        newGameMove.setRowIndex(codeGuessRows.indexOf(row));
+                        SaveNewGameMoveThread saveNewGameMoveThread = new SaveNewGameMoveThread(newGameMove);
+                        new Thread(saveNewGameMoveThread).start();
+
                         sendGameState(createGameState());
                     }
                 });
@@ -411,6 +434,11 @@ public class MastermindController {
                     if (selectedColor != defaultCircleColor) {
                         if (row.checkForDuplicatesInGuess(selectedColor)) {
                             guessCircle.setFill(selectedColor);
+
+                            GameMove newGameMove = new GameMove(MoveType.GUESS, selectedColor.toString());
+                            newGameMove.setRowIndex(codeGuessRows.indexOf(row));
+                            SaveNewGameMoveThread saveNewGameMoveThread = new SaveNewGameMoveThread(newGameMove);
+                            new Thread(saveNewGameMoveThread).start();
 
                             sendGameState(createGameState());
                         } else {
@@ -565,7 +593,9 @@ public class MastermindController {
         lbPlayer1Role.setText(player1.getRole().name());
         lbPlayer2Role.setText((player2.getRole().name()));
 
-        codeHBox.setVisible(!codeHBox.isVisible());
+        if(!MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SINGLE_PLAYER)){
+            codeHBox.setVisible(!codeHBox.isVisible());
+        }
     }
 
     private void resetGuessRows() {
@@ -578,9 +608,11 @@ public class MastermindController {
         if(MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SERVER)){
             boolean isVisible = player1.getRole().equals(Role.Codemaker);
             codeHBox.setVisible(isVisible);
-        }else {
+        }else if(MastermindApplication.loggedInNetworkRole.equals(NetworkRole.CLIENT)){
             boolean isVisible = player2.getRole().equals(Role.Codemaker);
             codeHBox.setVisible(isVisible);
+        }else {
+            codeHBox.setVisible(true);
         }
     }
 
@@ -589,7 +621,8 @@ public class MastermindController {
     }
 
     private void showStartGameWindow(boolean isShowed) {
-        if (MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SERVER)) {
+        if (MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SERVER) ||
+                MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SINGLE_PLAYER)) {
             apStartGame.setVisible(isShowed);
             codeHBox.setVisible(true);
         }else {
@@ -600,5 +633,17 @@ public class MastermindController {
     public void sendChatMessage(){
         ChatUtils.sendChatMessage(tfChatMessage.getText());
         tfChatMessage.clear();
+    }
+
+    private void saveNewGameMove(int rowIndex){
+        GameMove newGameMove = new GameMove(MoveType.GUESS, selectedColor.toString());
+        newGameMove.setRowIndex(rowIndex);
+        SaveNewGameMoveThread saveNewGameMoveThread = new SaveNewGameMoveThread(newGameMove);
+        new Thread(saveNewGameMoveThread).start();
+    }
+    private void saveNewGameMove(){
+        GameMove newGameMove = new GameMove(MoveType.CODE, selectedColor.toString());
+        SaveNewGameMoveThread saveNewGameMoveThread = new SaveNewGameMoveThread(newGameMove);
+        new Thread(saveNewGameMoveThread).start();
     }
 }
