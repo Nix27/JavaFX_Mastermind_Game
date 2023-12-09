@@ -19,7 +19,8 @@ public class GetLastGameMoveThread extends GameMoveThread implements Runnable {
 
             Platform.runLater(() -> lbLastGameMove.setText("The last game move: \nType: " + lastGameMove.getMoveType().name() +
                                                            (lastGameMove.getRowIndex() > -1 ? "\nRow: " + (lastGameMove.getRowIndex() + 1) : "") +
-                                                           "\nColor: " + lastGameMove.getColor()));
+                                                           "\nCircle: " + (lastGameMove.getCircleIndex() + 1) +
+                                                            "\nColor: " + lastGameMove.getColor()));
 
             try {
                 Thread.sleep(5000);

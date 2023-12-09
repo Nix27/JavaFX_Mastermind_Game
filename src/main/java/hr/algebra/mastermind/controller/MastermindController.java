@@ -22,6 +22,8 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -162,6 +164,8 @@ public class MastermindController {
         if(!MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SINGLE_PLAYER)){
             enableGuessRows(false);
             btnNextTurn.setDisable(true);
+        }else{
+            codeHBox.setVisible(false);
         }
 
         enableCircles(false, code.getCodeCircles());
@@ -193,6 +197,9 @@ public class MastermindController {
                 }
                 sendGameState(gameState);
                 DialogUtils.showInfo("Code cracked", "Code is successfully cracked!");
+                if(MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SINGLE_PLAYER)){
+                    codeHBox.setVisible(true);
+                }
                 return;
             }
 
@@ -362,7 +369,7 @@ public class MastermindController {
                     if (code.checkForDuplicates(selectedColor)) {
                         codeCircle.setFill(selectedColor);
 
-                        GameMove newGameMove = new GameMove(MoveType.CODE, selectedColor.toString());
+                        GameMove newGameMove = new GameMove(MoveType.CODE, code.getCodeCircles().indexOf(codeCircle), selectedColor.toString());
                         SaveNewGameMoveThread saveNewGameMoveThread = new SaveNewGameMoveThread(newGameMove);
                         new Thread(saveNewGameMoveThread).start();
 
@@ -415,7 +422,7 @@ public class MastermindController {
                     if (selectedHintColor != defaultCircleColor){
                         hintCircle.setFill(selectedHintColor);
 
-                        GameMove newGameMove = new GameMove(MoveType.HINT, selectedHintColor.toString());
+                        GameMove newGameMove = new GameMove(MoveType.HINT, row.getHintCircles().indexOf(hintCircle), selectedHintColor.toString());
                         newGameMove.setRowIndex(codeGuessRows.indexOf(row));
                         SaveNewGameMoveThread saveNewGameMoveThread = new SaveNewGameMoveThread(newGameMove);
                         new Thread(saveNewGameMoveThread).start();
@@ -435,7 +442,7 @@ public class MastermindController {
                         if (row.checkForDuplicatesInGuess(selectedColor)) {
                             guessCircle.setFill(selectedColor);
 
-                            GameMove newGameMove = new GameMove(MoveType.GUESS, selectedColor.toString());
+                            GameMove newGameMove = new GameMove(MoveType.GUESS, row.getGuessCircles().indexOf(guessCircle), selectedColor.toString());
                             newGameMove.setRowIndex(codeGuessRows.indexOf(row));
                             SaveNewGameMoveThread saveNewGameMoveThread = new SaveNewGameMoveThread(newGameMove);
                             new Thread(saveNewGameMoveThread).start();
@@ -544,6 +551,10 @@ public class MastermindController {
             GameState gameState = createGameState();
             gameState.setIsNextRound(true);
             sendGameState(gameState);
+
+            if(MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SINGLE_PLAYER)){
+                codeHBox.setVisible(true);
+            }
             return;
         }
 
@@ -633,17 +644,5 @@ public class MastermindController {
     public void sendChatMessage(){
         ChatUtils.sendChatMessage(tfChatMessage.getText());
         tfChatMessage.clear();
-    }
-
-    private void saveNewGameMove(int rowIndex){
-        GameMove newGameMove = new GameMove(MoveType.GUESS, selectedColor.toString());
-        newGameMove.setRowIndex(rowIndex);
-        SaveNewGameMoveThread saveNewGameMoveThread = new SaveNewGameMoveThread(newGameMove);
-        new Thread(saveNewGameMoveThread).start();
-    }
-    private void saveNewGameMove(){
-        GameMove newGameMove = new GameMove(MoveType.CODE, selectedColor.toString());
-        SaveNewGameMoveThread saveNewGameMoveThread = new SaveNewGameMoveThread(newGameMove);
-        new Thread(saveNewGameMoveThread).start();
     }
 }
