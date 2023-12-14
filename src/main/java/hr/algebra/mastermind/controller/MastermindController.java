@@ -33,6 +33,7 @@ public class MastermindController {
     private final String CODEBREAKER_GUESS = "Codebreaker guesses the code";
     private final String CODEMAKER_GIVES_HINT = "Codemaker gives a hint";
     private final String GAME_STATE_FILE = "gameState.ser";
+    private static final String GAME_MOVES_FILE_NAME = "files/game_moves.dat";
 
     public AnchorPane apStartGame;
     public FlowPane guessColorsFlowPane;
@@ -125,9 +126,11 @@ public class MastermindController {
             timeline.playFromStart();
         }
 
-        GetLastGameMoveThread getLastGameMoveThread = new GetLastGameMoveThread(lbLastGameMove);
-        Thread starterThread = new Thread(getLastGameMoveThread);
-        starterThread.start();
+        if(Files.exists(Path.of(GAME_MOVES_FILE_NAME))){
+            GetLastGameMoveThread getLastGameMoveThread = new GetLastGameMoveThread(lbLastGameMove);
+            Thread starterThread = new Thread(getLastGameMoveThread);
+            starterThread.start();
+        }
     }
 
     public void startGame() {
@@ -140,8 +143,7 @@ public class MastermindController {
         currentTurn = Role.Codemaker;
         lbDescriptionOfCurrentTurn.setVisible(true);
         updateDescriptionOfCurrentTurn(CODEMAKER_SETS_CODE);
-
-        sendGameState(createGameState());
+        sendGameStateIfNotSinglePlayer(createGameState());
     }
 
     public void startGuessing() {
@@ -159,7 +161,7 @@ public class MastermindController {
         btnNextTurn.setVisible(true);
 
         updateDescriptionOfCurrentTurn(CODEBREAKER_GUESS);
-        sendGameState(createGameState());
+        sendGameStateIfNotSinglePlayer(createGameState());
 
         if(!MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SINGLE_PLAYER)){
             enableGuessRows(false);
@@ -195,11 +197,8 @@ public class MastermindController {
                 if(numberOfRounds > 0){
                     gameState.setIsNextRound(true);
                 }
-                sendGameState(gameState);
+                sendGameStateIfNotSinglePlayer(gameState);
                 DialogUtils.showInfo("Code cracked", "Code is successfully cracked!");
-                if(MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SINGLE_PLAYER)){
-                    codeHBox.setVisible(true);
-                }
                 return;
             }
 
@@ -213,7 +212,7 @@ public class MastermindController {
             updateDescriptionOfCurrentTurn(CODEMAKER_GIVES_HINT);
         }
 
-        sendGameState(createGameState());
+        sendGameStateIfNotSinglePlayer(createGameState());
 
         if(!MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SINGLE_PLAYER)){
             enableGuessRows(false);
@@ -246,14 +245,12 @@ public class MastermindController {
         lbResult.setText("");
 
         showStartGameWindow(true);
-        sendGameState(createGameState());
+        sendGameStateIfNotSinglePlayer(createGameState());
     }
 
     public void saveGame() {
-        var gameStateToSave = createGameState();
-
         try {
-            FileUtils.save(gameStateToSave, GAME_STATE_FILE);
+            FileUtils.save(createGameState(), GAME_STATE_FILE);
         } catch (IOException e) {
             DialogUtils.showErrorDialog("Save error", "Unable to save game!");
             e.printStackTrace();
@@ -373,7 +370,7 @@ public class MastermindController {
                         SaveNewGameMoveThread saveNewGameMoveThread = new SaveNewGameMoveThread(newGameMove);
                         new Thread(saveNewGameMoveThread).start();
 
-                        sendGameState(createGameState());
+                        sendGameStateIfNotSinglePlayer(createGameState());
                     } else {
                         DialogUtils.showWarning("Duplicates", "Color duplicates", "The code must have different colors!");
                     }
@@ -382,7 +379,7 @@ public class MastermindController {
         }
     }
 
-    private void sendGameState(GameState gameState){
+    private void sendGameStateIfNotSinglePlayer(GameState gameState){
         if(MastermindApplication.loggedInNetworkRole.name().equals(NetworkRole.CLIENT.name())){
             NetworkingUtils.sendGameStateToServer(gameState);
         }else if(MastermindApplication.loggedInNetworkRole.name().equals(NetworkRole.SERVER.name())){
@@ -427,7 +424,7 @@ public class MastermindController {
                         SaveNewGameMoveThread saveNewGameMoveThread = new SaveNewGameMoveThread(newGameMove);
                         new Thread(saveNewGameMoveThread).start();
 
-                        sendGameState(createGameState());
+                        sendGameStateIfNotSinglePlayer(createGameState());
                     }
                 });
             }
@@ -447,7 +444,7 @@ public class MastermindController {
                             SaveNewGameMoveThread saveNewGameMoveThread = new SaveNewGameMoveThread(newGameMove);
                             new Thread(saveNewGameMoveThread).start();
 
-                            sendGameState(createGameState());
+                            sendGameStateIfNotSinglePlayer(createGameState());
                         } else {
                             DialogUtils.showWarning("Duplicates", "Color duplicates", "The code must have different colors!");
                         }
@@ -505,16 +502,13 @@ public class MastermindController {
     }
 
     private boolean checkForRightCode() {
-        boolean isRightCode = true;
-
         for(int i = 0; i < code.getCodeCircles().size(); i++){
             if(!code.getCodeCircles().get(i).getFill().equals(currentRow.getGuessCircles().get(i).getFill())){
-                isRightCode = false;
-                break;
+                return false;
             }
         }
 
-        return isRightCode;
+        return true;
     }
 
     private void setPlayerIndicator() {
@@ -550,7 +544,7 @@ public class MastermindController {
             nextRound();
             GameState gameState = createGameState();
             gameState.setIsNextRound(true);
-            sendGameState(gameState);
+            sendGameStateIfNotSinglePlayer(gameState);
 
             if(MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SINGLE_PLAYER)){
                 codeHBox.setVisible(true);
@@ -559,7 +553,6 @@ public class MastermindController {
         }
 
         currentRow = codeGuessRows.get(currentRowIndex + 1);
-
         currentRow.setActiveGuessCircles(true);
     }
 
@@ -604,9 +597,7 @@ public class MastermindController {
         lbPlayer1Role.setText(player1.getRole().name());
         lbPlayer2Role.setText((player2.getRole().name()));
 
-        if(!MastermindApplication.loggedInNetworkRole.equals(NetworkRole.SINGLE_PLAYER)){
-            codeHBox.setVisible(!codeHBox.isVisible());
-        }
+        codeHBox.setVisible(!codeHBox.isVisible());
     }
 
     private void resetGuessRows() {
