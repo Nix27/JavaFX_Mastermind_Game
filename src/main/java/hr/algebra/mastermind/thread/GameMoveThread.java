@@ -1,6 +1,7 @@
 package hr.algebra.mastermind.thread;
 
 import hr.algebra.mastermind.model.GameMove;
+import hr.algebra.mastermind.repository.GameMoveRepository;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -8,7 +9,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class GameMoveThread {
+public abstract class GameMoveThread implements GameMoveRepository {
     private static final String GAME_MOVES_FILE_NAME = "files/game_moves.dat";
 
     private static boolean inProgress = false;
@@ -56,7 +57,7 @@ public abstract class GameMoveThread {
         notifyAll();
     }
 
-    private synchronized List<GameMove> getAllGameMoves(){
+    public synchronized List<GameMove> getAllGameMoves(){
         List<GameMove> allGameMoves = new ArrayList<>();
 
         if(Files.exists(Path.of(GAME_MOVES_FILE_NAME))){
