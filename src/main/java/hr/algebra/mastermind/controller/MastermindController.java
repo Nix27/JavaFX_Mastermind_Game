@@ -367,6 +367,7 @@ public class MastermindController {
                         codeCircle.setFill(selectedColor);
 
                         GameMove newGameMove = new GameMove(MoveType.CODE, code.getCodeCircles().indexOf(codeCircle), selectedColor.toString());
+                        XmlUtils.saveGameMove(newGameMove);
                         SaveNewGameMoveThread saveNewGameMoveThread = new SaveNewGameMoveThread(newGameMove);
                         new Thread(saveNewGameMoveThread).start();
 
@@ -421,6 +422,7 @@ public class MastermindController {
 
                         GameMove newGameMove = new GameMove(MoveType.HINT, row.getHintCircles().indexOf(hintCircle), selectedHintColor.toString());
                         newGameMove.setRowIndex(codeGuessRows.indexOf(row));
+                        XmlUtils.saveGameMove(newGameMove);
                         SaveNewGameMoveThread saveNewGameMoveThread = new SaveNewGameMoveThread(newGameMove);
                         new Thread(saveNewGameMoveThread).start();
 
@@ -441,6 +443,7 @@ public class MastermindController {
 
                             GameMove newGameMove = new GameMove(MoveType.GUESS, row.getGuessCircles().indexOf(guessCircle), selectedColor.toString());
                             newGameMove.setRowIndex(codeGuessRows.indexOf(row));
+                            XmlUtils.saveGameMove(newGameMove);
                             SaveNewGameMoveThread saveNewGameMoveThread = new SaveNewGameMoveThread(newGameMove);
                             new Thread(saveNewGameMoveThread).start();
 

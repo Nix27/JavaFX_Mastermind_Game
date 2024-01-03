@@ -3,6 +3,7 @@ module hr.algebra.mastermind {
     requires javafx.fxml;
     requires java.rmi;
     requires java.naming;
+    requires java.xml;
 
     exports hr.algebra.mastermind.chat to java.rmi;
     opens hr.algebra.mastermind to javafx.fxml;
