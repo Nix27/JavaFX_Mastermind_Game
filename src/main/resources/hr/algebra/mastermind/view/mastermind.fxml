@@ -226,8 +226,10 @@
           <Menu mnemonicParsing="false" text="Game">
             <items>
               <MenuItem mnemonicParsing="false" onAction="#newGame" text="New Game" />
+                  <MenuItem mnemonicParsing="false" onAction="#resetGame" text="Reset Game" />
                   <MenuItem mnemonicParsing="false" onAction="#saveGame" text="Save" />
                   <MenuItem mnemonicParsing="false" onAction="#loadGame" text="Load" />
+                  <MenuItem mnemonicParsing="false" onAction="#replayLastGame" text="Replay" />
             </items>
           </Menu>
             <Menu mnemonicParsing="false" text="Documentation">

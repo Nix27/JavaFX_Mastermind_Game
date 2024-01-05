@@ -21,11 +21,14 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.util.Duration;
+
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MastermindController {
     private final int NUM_OF_GUESS_ROWS = 10;
@@ -221,31 +224,20 @@ public class MastermindController {
     }
 
     public void newGame() {
-        player1.reset();
-        player2.reset();
-        showPlayerInfo();
-        currentTurn = null;
-        setPlayerIndicator();
-        code.resetCode();
-        setCodeVisibility();
-        enableCircles(false, code.getCodeCircles());
-        resetGuessRows();
-
-        if (currentRow != null) {
-            currentRow.setActiveGuessCircles(false);
-            currentRow.setActiveHintCircles(false);
-            currentRow = null;
-        }
-
-        btnNextTurn.setVisible(false);
-        btnSetCode.setVisible(false);
-        btnStartGame.setVisible(true);
+        clearBoard();
         spNumberOfRounds.setValueFactory(spinnerValueFactory);
-        lbDescriptionOfCurrentTurn.setText("");
-        lbResult.setText("");
-
         showStartGameWindow(true);
-        sendGameStateIfNotSinglePlayer(createGameState());
+
+        try {
+            Files.deleteIfExists(Path.of(XmlUtils.FILENAME));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void resetGame() {
+        clearBoard();
+        startGame();
     }
 
     public void saveGame() {
@@ -352,6 +344,31 @@ public class MastermindController {
         DocumentationUtils.createHtmlDocumentation();
     }
 
+    public void replayLastGame(){
+        apStartGame.setVisible(false);
+        List<GameMove> allGameMoves = XmlUtils.getAllGameMoves();
+        AtomicInteger i = new AtomicInteger(0);
+
+        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
+            GameMove gameMove = allGameMoves.get(i.get());
+
+            if(gameMove.getMoveType().equals(MoveType.CODE) && gameMove.getCircleIndex() == 0){
+                code.resetCode();
+                codeGuessRows.forEach(CodeGuessRow::resetRow);
+            }
+
+            switch (gameMove.getMoveType()) {
+                case MoveType.CODE -> code.getCodeCircles().get(gameMove.getCircleIndex()).setFill(Color.web(gameMove.getColor()));
+                case MoveType.GUESS -> codeGuessRows.get(gameMove.getRowIndex()).getGuessCircles().get(gameMove.getCircleIndex()).setFill(Color.web(gameMove.getColor()));
+                case MoveType.HINT -> codeGuessRows.get(gameMove.getRowIndex()).getHintCircles().get(gameMove.getCircleIndex()).setFill(Color.web(gameMove.getColor()));
+            }
+
+            i.set(i.get() + 1);
+        }));
+        timeline.setCycleCount(allGameMoves.size());
+        timeline.playFromStart();
+    }
+
     //private methods
     private void updateDescriptionOfCurrentTurn(String description) {
         lbDescriptionOfCurrentTurn.setText(description);
@@ -378,6 +395,32 @@ public class MastermindController {
                 }
             });
         }
+    }
+
+    private void clearBoard() {
+        player1.reset();
+        player2.reset();
+        showPlayerInfo();
+        currentTurn = null;
+        setPlayerIndicator();
+        code.resetCode();
+        setCodeVisibility();
+        enableCircles(false, code.getCodeCircles());
+        resetGuessRows();
+
+        if (currentRow != null) {
+            currentRow.setActiveGuessCircles(false);
+            currentRow.setActiveHintCircles(false);
+            currentRow = null;
+        }
+
+        btnNextTurn.setVisible(false);
+        btnSetCode.setVisible(false);
+        btnStartGame.setVisible(true);
+        lbDescriptionOfCurrentTurn.setText("");
+        lbResult.setText("");
+
+        sendGameStateIfNotSinglePlayer(createGameState());
     }
 
     private void sendGameStateIfNotSinglePlayer(GameState gameState){

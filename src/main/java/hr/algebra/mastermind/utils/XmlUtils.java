@@ -48,49 +48,53 @@ public class XmlUtils {
     public static List<GameMove> getAllGameMoves() {
         List<GameMove> gameMoves = new ArrayList<>();
 
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        File xmlFile = new File(FILENAME);
 
-        try {
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document document = builder.parse(new File(FILENAME));
-            Element gameMovesDocumentElement = document.getDocumentElement();
+        if(xmlFile.exists()){
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 
-            NodeList childNodesFromGameMoves = gameMovesDocumentElement.getChildNodes();
+            try {
+                DocumentBuilder builder = factory.newDocumentBuilder();
+                Document document = builder.parse(xmlFile);
+                Element gameMovesDocumentElement = document.getDocumentElement();
 
-            MoveType moveType = MoveType.CODE;
-            int rowIndex = -1;
-            int circleIndex = 0;
-            String color = "";
+                NodeList childNodesFromGameMoves = gameMovesDocumentElement.getChildNodes();
 
-            for (int i = 0; i < childNodesFromGameMoves.getLength(); i++) {
-                Node gameMoveNode = childNodesFromGameMoves.item(i);
+                MoveType moveType = MoveType.CODE;
+                int rowIndex = -1;
+                int circleIndex = 0;
+                String color = "";
 
-                if (gameMoveNode.getNodeType() != Node.ELEMENT_NODE) continue;
+                for (int i = 0; i < childNodesFromGameMoves.getLength(); i++) {
+                    Node gameMoveNode = childNodesFromGameMoves.item(i);
 
-                Element gameMoveElement = (Element) gameMoveNode;
+                    if (gameMoveNode.getNodeType() != Node.ELEMENT_NODE) continue;
 
-                NodeList childNodesFromGameMove = gameMoveElement.getChildNodes();
+                    Element gameMoveElement = (Element) gameMoveNode;
 
-                for (int j = 0; j < childNodesFromGameMove.getLength(); j++) {
-                    if (childNodesFromGameMove.item(j).getNodeType() == Node.ELEMENT_NODE) {
-                        Element childFromGameMove = (Element) childNodesFromGameMove.item(j);
+                    NodeList childNodesFromGameMove = gameMoveElement.getChildNodes();
 
-                        switch (childFromGameMove.getTagName()) {
-                            case "moveType" -> moveType = MoveType.valueOf(childFromGameMove.getTextContent());
-                            case "rowIndex" -> rowIndex = Integer.parseInt(childFromGameMove.getTextContent());
-                            case "circleIndex" -> circleIndex = Integer.parseInt(childFromGameMove.getTextContent());
-                            case "color" -> color = childFromGameMove.getTextContent();
+                    for (int j = 0; j < childNodesFromGameMove.getLength(); j++) {
+                        if (childNodesFromGameMove.item(j).getNodeType() == Node.ELEMENT_NODE) {
+                            Element childFromGameMove = (Element) childNodesFromGameMove.item(j);
+
+                            switch (childFromGameMove.getTagName()) {
+                                case "moveType" -> moveType = MoveType.valueOf(childFromGameMove.getTextContent());
+                                case "rowIndex" -> rowIndex = Integer.parseInt(childFromGameMove.getTextContent());
+                                case "circleIndex" -> circleIndex = Integer.parseInt(childFromGameMove.getTextContent());
+                                case "color" -> color = childFromGameMove.getTextContent();
+                            }
                         }
                     }
+
+                    GameMove gameMove = new GameMove(moveType, circleIndex, color);
+                    if (rowIndex > -1) gameMove.setRowIndex(rowIndex);
+
+                    gameMoves.add(gameMove);
                 }
-
-                GameMove gameMove = new GameMove(moveType, circleIndex, color);
-                if (rowIndex > -1) gameMove.setRowIndex(rowIndex);
-
-                gameMoves.add(gameMove);
+            } catch (ParserConfigurationException | IOException | SAXException e) {
+                e.printStackTrace();
             }
-        } catch (ParserConfigurationException | IOException | SAXException e) {
-            e.printStackTrace();
         }
 
         return gameMoves;
