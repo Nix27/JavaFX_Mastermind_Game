@@ -9,6 +9,7 @@ import hr.algebra.mastermind.model.*;
 import hr.algebra.mastermind.thread.GetLastGameMoveThread;
 import hr.algebra.mastermind.thread.SaveNewGameMoveThread;
 import hr.algebra.mastermind.utils.*;
+import hr.algebra.mastermind.xml.XMLGenerator;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -22,7 +23,6 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,7 +37,6 @@ public class MastermindController {
     private final String CODEMAKER_GIVES_HINT = "Codemaker gives a hint";
     private final String GAME_STATE_FILE = "gameState.ser";
     private static final String GAME_MOVES_FILE_NAME = "files/game_moves.dat";
-
     public AnchorPane apStartGame;
     public FlowPane guessColorsFlowPane;
     public FlowPane hintColorsFlowPane;
@@ -59,25 +58,22 @@ public class MastermindController {
     public  TextArea taChatMessages;
     public Button btnSend;
     public Label lbLastGameMove;
-
     private final Paint defaultCircleColor = Color.web("#848484");
     private Paint selectedColor;
     private Paint selectedHintColor;
-
     private final List<Circle> colorCircles = new ArrayList<>();
     private final List<Circle> hintColorCircles = new ArrayList<>();
     private Code code;
     private final List<CodeGuessRow> codeGuessRows = new ArrayList<>();
     private CodeGuessRow currentRow;
-
     private int numberOfRounds;
     private Player player1;
     private Player player2;
     private Role currentTurn;
     public static RemoteChatService remoteChatService;
-
     private final SpinnerValueFactory<Integer> spinnerValueFactory =
             new SpinnerValueFactory.IntegerSpinnerValueFactory(2, 100, 2, 2);
+    XMLGenerator xmlGenerator = new XMLGenerator();
 
     public void initialize() {
         initColorCircles();
@@ -229,7 +225,7 @@ public class MastermindController {
         showStartGameWindow(true);
 
         try {
-            Files.deleteIfExists(Path.of(XmlUtils.FILENAME));
+            Files.deleteIfExists(Path.of(xmlGenerator.FILENAME));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -345,8 +341,15 @@ public class MastermindController {
     }
 
     public void replayLastGame(){
+        List<GameMove> allGameMoves = xmlGenerator.getAllGameMoves();
+
+        if(allGameMoves.isEmpty()) {
+            DialogUtils.showInfo("Not played!", "You need to play at least one move to be able to replay the last game!");
+            return;
+        }
+
         apStartGame.setVisible(false);
-        List<GameMove> allGameMoves = XmlUtils.getAllGameMoves();
+        codeHBox.setVisible(true);
         AtomicInteger i = new AtomicInteger(0);
 
         Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
@@ -358,9 +361,18 @@ public class MastermindController {
             }
 
             switch (gameMove.getMoveType()) {
-                case MoveType.CODE -> code.getCodeCircles().get(gameMove.getCircleIndex()).setFill(Color.web(gameMove.getColor()));
-                case MoveType.GUESS -> codeGuessRows.get(gameMove.getRowIndex()).getGuessCircles().get(gameMove.getCircleIndex()).setFill(Color.web(gameMove.getColor()));
-                case MoveType.HINT -> codeGuessRows.get(gameMove.getRowIndex()).getHintCircles().get(gameMove.getCircleIndex()).setFill(Color.web(gameMove.getColor()));
+                case MoveType.CODE -> {
+                    lbDescriptionOfCurrentTurn.setText(CODEMAKER_SETS_CODE);
+                    code.getCodeCircles().get(gameMove.getCircleIndex()).setFill(Color.web(gameMove.getColor()));
+                }
+                case MoveType.GUESS -> {
+                    lbDescriptionOfCurrentTurn.setText(CODEBREAKER_GUESS);
+                    codeGuessRows.get(gameMove.getRowIndex()).getGuessCircles().get(gameMove.getCircleIndex()).setFill(Color.web(gameMove.getColor()));
+                }
+                case MoveType.HINT -> {
+                    lbDescriptionOfCurrentTurn.setText(CODEMAKER_GIVES_HINT);
+                    codeGuessRows.get(gameMove.getRowIndex()).getHintCircles().get(gameMove.getCircleIndex()).setFill(Color.web(gameMove.getColor()));
+                }
             }
 
             i.set(i.get() + 1);
@@ -384,7 +396,7 @@ public class MastermindController {
                         codeCircle.setFill(selectedColor);
 
                         GameMove newGameMove = new GameMove(MoveType.CODE, code.getCodeCircles().indexOf(codeCircle), selectedColor.toString());
-                        XmlUtils.saveGameMove(newGameMove);
+                        xmlGenerator.saveNewGameMove(newGameMove);
                         SaveNewGameMoveThread saveNewGameMoveThread = new SaveNewGameMoveThread(newGameMove);
                         new Thread(saveNewGameMoveThread).start();
 
@@ -465,7 +477,7 @@ public class MastermindController {
 
                         GameMove newGameMove = new GameMove(MoveType.HINT, row.getHintCircles().indexOf(hintCircle), selectedHintColor.toString());
                         newGameMove.setRowIndex(codeGuessRows.indexOf(row));
-                        XmlUtils.saveGameMove(newGameMove);
+                        xmlGenerator.saveNewGameMove(newGameMove);
                         SaveNewGameMoveThread saveNewGameMoveThread = new SaveNewGameMoveThread(newGameMove);
                         new Thread(saveNewGameMoveThread).start();
 
@@ -486,7 +498,7 @@ public class MastermindController {
 
                             GameMove newGameMove = new GameMove(MoveType.GUESS, row.getGuessCircles().indexOf(guessCircle), selectedColor.toString());
                             newGameMove.setRowIndex(codeGuessRows.indexOf(row));
-                            XmlUtils.saveGameMove(newGameMove);
+                            xmlGenerator.saveNewGameMove(newGameMove);
                             SaveNewGameMoveThread saveNewGameMoveThread = new SaveNewGameMoveThread(newGameMove);
                             new Thread(saveNewGameMoveThread).start();
 
@@ -611,7 +623,6 @@ public class MastermindController {
             }
 
             btnNextTurn.setDisable(true);
-
             return true;
         }
 

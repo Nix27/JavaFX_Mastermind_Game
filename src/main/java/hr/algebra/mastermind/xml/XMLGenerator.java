@@ -1,14 +1,18 @@
-package hr.algebra.mastermind.utils;
+package hr.algebra.mastermind.xml;
 
 import hr.algebra.mastermind.enums.MoveType;
 import hr.algebra.mastermind.model.GameMove;
+import hr.algebra.mastermind.repository.SimpleGameMoveRepository;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.*;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
@@ -16,11 +20,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class XmlUtils {
+public class XMLGenerator implements SimpleGameMoveRepository {
+    public final String FILENAME = "xml/gameMoves.xml";
 
-    public static final String FILENAME = "xml/gameMoves.xml";
-
-    public static void saveGameMove(GameMove newGameMove) {
+    @Override
+    public void saveNewGameMove(GameMove newGameMove) {
         try {
             List<GameMove> allGameMoves = getAllGameMoves();
             allGameMoves.add(newGameMove);
@@ -45,7 +49,8 @@ public class XmlUtils {
         }
     }
 
-    public static List<GameMove> getAllGameMoves() {
+    @Override
+    public List<GameMove> getAllGameMoves() {
         List<GameMove> gameMoves = new ArrayList<>();
 
         File xmlFile = new File(FILENAME);
@@ -100,21 +105,21 @@ public class XmlUtils {
         return gameMoves;
     }
 
-    private static void saveDocument(Document document, String filename) throws TransformerException {
+    private void saveDocument(Document document, String filename) throws TransformerException {
         TransformerFactory factory = TransformerFactory.newInstance();
         Transformer transformer = factory.newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         transformer.transform(new DOMSource(document), new StreamResult(new File(filename)));
     }
 
-    private static Document createDocument(String element) throws ParserConfigurationException {
+    private Document createDocument(String element) throws ParserConfigurationException {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
         DOMImplementation domImplementation = builder.getDOMImplementation();
         return domImplementation.createDocument(null, element, null);
     }
 
-    private static Node createElement(Document document, String tagName, String data) {
+    private Node createElement(Document document, String tagName, String data) {
         Element element = document.createElement(tagName);
         Text text = document.createTextNode(data);
         element.appendChild(text);

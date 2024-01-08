@@ -2,6 +2,7 @@ package hr.algebra.mastermind.thread;
 
 import hr.algebra.mastermind.model.GameMove;
 import hr.algebra.mastermind.repository.GameMoveRepository;
+import hr.algebra.mastermind.repository.SimpleGameMoveRepository;
 
 import java.io.*;
 import java.nio.file.Files;
