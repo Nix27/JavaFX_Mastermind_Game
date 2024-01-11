@@ -340,7 +340,7 @@ public class MastermindController {
         DocumentationUtils.createHtmlDocumentation();
     }
 
-    public void replayLastGame(){
+    public void replayLastGame() {
         List<GameMove> allGameMoves = xmlGenerator.getAllGameMoves();
 
         if(allGameMoves.isEmpty()) {
@@ -349,6 +349,10 @@ public class MastermindController {
         }
 
         apStartGame.setVisible(false);
+        code.resetCode();
+        codeGuessRows.forEach(CodeGuessRow::resetRow);
+        player1.reset();
+        player2.reset();
         codeHBox.setVisible(true);
         AtomicInteger i = new AtomicInteger(0);
 
@@ -362,14 +366,17 @@ public class MastermindController {
 
             switch (gameMove.getMoveType()) {
                 case MoveType.CODE -> {
+                    setUIInReply(gameMove);
                     lbDescriptionOfCurrentTurn.setText(CODEMAKER_SETS_CODE);
                     code.getCodeCircles().get(gameMove.getCircleIndex()).setFill(Color.web(gameMove.getColor()));
                 }
                 case MoveType.GUESS -> {
+                    setUIInReply(gameMove);
                     lbDescriptionOfCurrentTurn.setText(CODEBREAKER_GUESS);
                     codeGuessRows.get(gameMove.getRowIndex()).getGuessCircles().get(gameMove.getCircleIndex()).setFill(Color.web(gameMove.getColor()));
                 }
                 case MoveType.HINT -> {
+                    setUIInReply(gameMove);
                     lbDescriptionOfCurrentTurn.setText(CODEMAKER_GIVES_HINT);
                     codeGuessRows.get(gameMove.getRowIndex()).getHintCircles().get(gameMove.getCircleIndex()).setFill(Color.web(gameMove.getColor()));
                 }
@@ -395,7 +402,7 @@ public class MastermindController {
                     if (code.checkForDuplicates(selectedColor)) {
                         codeCircle.setFill(selectedColor);
 
-                        GameMove newGameMove = new GameMove(MoveType.CODE, code.getCodeCircles().indexOf(codeCircle), selectedColor.toString());
+                        GameMove newGameMove = new GameMove(MoveType.CODE, code.getCodeCircles().indexOf(codeCircle), selectedColor.toString(), player1Indicator.isVisible(), player2Indicator.isVisible(), player1.getNumberOfPoints(), player2.getNumberOfPoints(), player1.getRole().name(), player2.getRole().name());
                         xmlGenerator.saveNewGameMove(newGameMove);
                         SaveNewGameMoveThread saveNewGameMoveThread = new SaveNewGameMoveThread(newGameMove);
                         new Thread(saveNewGameMoveThread).start();
@@ -427,6 +434,7 @@ public class MastermindController {
         }
 
         btnNextTurn.setVisible(false);
+        btnNextTurn.setDisable(false);
         btnSetCode.setVisible(false);
         btnStartGame.setVisible(true);
         lbDescriptionOfCurrentTurn.setText("");
@@ -475,7 +483,7 @@ public class MastermindController {
                     if (selectedHintColor != defaultCircleColor){
                         hintCircle.setFill(selectedHintColor);
 
-                        GameMove newGameMove = new GameMove(MoveType.HINT, row.getHintCircles().indexOf(hintCircle), selectedHintColor.toString());
+                        GameMove newGameMove = new GameMove(MoveType.HINT, row.getHintCircles().indexOf(hintCircle), selectedHintColor.toString(), player1Indicator.isVisible(), player2Indicator.isVisible(), player1.getNumberOfPoints(), player2.getNumberOfPoints(), player1.getRole().name(), player2.getRole().name());
                         newGameMove.setRowIndex(codeGuessRows.indexOf(row));
                         xmlGenerator.saveNewGameMove(newGameMove);
                         SaveNewGameMoveThread saveNewGameMoveThread = new SaveNewGameMoveThread(newGameMove);
@@ -496,7 +504,7 @@ public class MastermindController {
                         if (row.checkForDuplicatesInGuess(selectedColor)) {
                             guessCircle.setFill(selectedColor);
 
-                            GameMove newGameMove = new GameMove(MoveType.GUESS, row.getGuessCircles().indexOf(guessCircle), selectedColor.toString());
+                            GameMove newGameMove = new GameMove(MoveType.GUESS, row.getGuessCircles().indexOf(guessCircle), selectedColor.toString(), player1Indicator.isVisible(), player2Indicator.isVisible(), player1.getNumberOfPoints(), player2.getNumberOfPoints(), player1.getRole().name(), player2.getRole().name());
                             newGameMove.setRowIndex(codeGuessRows.indexOf(row));
                             xmlGenerator.saveNewGameMove(newGameMove);
                             SaveNewGameMoveThread saveNewGameMoveThread = new SaveNewGameMoveThread(newGameMove);
@@ -692,5 +700,14 @@ public class MastermindController {
     public void sendChatMessage(){
         ChatUtils.sendChatMessage(tfChatMessage.getText());
         tfChatMessage.clear();
+    }
+
+    private void setUIInReply(GameMove gameMove) {
+        player1Indicator.setVisible(gameMove.isVisiblePlayer1Indicator());
+        player2Indicator.setVisible(gameMove.isVisiblePlayer2Indicator());
+        lbPlayer1Points.setText(String.valueOf(gameMove.getPointsPlayer1()));
+        lbPlayer2Points.setText(String.valueOf(gameMove.getPointsPlayer2()));
+        lbPlayer1Role.setText(gameMove.getPlayer1Role());
+        lbPlayer2Role.setText(gameMove.getPlayer2Role());
     }
 }

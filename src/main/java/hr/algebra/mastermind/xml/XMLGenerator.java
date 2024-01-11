@@ -41,6 +41,12 @@ public class XMLGenerator implements SimpleGameMoveRepository {
                 }
                 gameMove.appendChild(createElement(document, "circleIndex", String.valueOf(allGameMoves.get(i).getCircleIndex())));
                 gameMove.appendChild(createElement(document, "color", allGameMoves.get(i).getColor()));
+                gameMove.appendChild(createElement(document, "isPlayer1IndicatorVisible", String.valueOf(allGameMoves.get(i).isVisiblePlayer1Indicator())));
+                gameMove.appendChild(createElement(document, "isPlayer2IndicatorVisible", String.valueOf(allGameMoves.get(i).isVisiblePlayer2Indicator())));
+                gameMove.appendChild(createElement(document, "player1Points", String.valueOf(allGameMoves.get(i).getPointsPlayer1())));
+                gameMove.appendChild(createElement(document, "player2Points", String.valueOf(allGameMoves.get(i).getPointsPlayer2())));
+                gameMove.appendChild(createElement(document, "player1Role", allGameMoves.get(i).getPlayer1Role()));
+                gameMove.appendChild(createElement(document, "player2Role", allGameMoves.get(i).getPlayer2Role()));
             }
 
             saveDocument(document, FILENAME);
@@ -69,6 +75,12 @@ public class XMLGenerator implements SimpleGameMoveRepository {
                 int rowIndex = -1;
                 int circleIndex = 0;
                 String color = "";
+                boolean isPlayer1IndicatorVisible = false;
+                boolean isPlayer2IndicatorVisible = false;
+                int player1Points = 0;
+                int player2Points = 0;
+                String player1Role = "";
+                String player2Role = "";
 
                 for (int i = 0; i < childNodesFromGameMoves.getLength(); i++) {
                     Node gameMoveNode = childNodesFromGameMoves.item(i);
@@ -88,11 +100,17 @@ public class XMLGenerator implements SimpleGameMoveRepository {
                                 case "rowIndex" -> rowIndex = Integer.parseInt(childFromGameMove.getTextContent());
                                 case "circleIndex" -> circleIndex = Integer.parseInt(childFromGameMove.getTextContent());
                                 case "color" -> color = childFromGameMove.getTextContent();
+                                case "isPlayer1IndicatorVisible" -> isPlayer1IndicatorVisible = Boolean.parseBoolean(childFromGameMove.getTextContent());
+                                case "isPlayer2IndicatorVisible" -> isPlayer2IndicatorVisible = Boolean.parseBoolean(childFromGameMove.getTextContent());
+                                case "player1Points" -> player1Points = Integer.parseInt(childFromGameMove.getTextContent());
+                                case "player2Points" -> player2Points = Integer.parseInt(childFromGameMove.getTextContent());
+                                case "player1Role" -> player1Role = childFromGameMove.getTextContent();
+                                case "player2Role" -> player2Role = childFromGameMove.getTextContent();
                             }
                         }
                     }
 
-                    GameMove gameMove = new GameMove(moveType, circleIndex, color);
+                    GameMove gameMove = new GameMove(moveType, circleIndex, color, isPlayer1IndicatorVisible, isPlayer2IndicatorVisible, player1Points, player2Points, player1Role, player2Role);
                     if (rowIndex > -1) gameMove.setRowIndex(rowIndex);
 
                     gameMoves.add(gameMove);
